@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Dashboard de Atendimentos"
+version = "1.0.0"
+id = "artifacts/atendimento-dashboard"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18542
+
+[services.development]
+run = "pnpm --filter @workspace/atendimento-dashboard run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/atendimento-dashboard", "run", "build" ]
+publicDir = "artifacts/atendimento-dashboard/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18542"
+BASE_PATH = "/"

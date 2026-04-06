@@ -1,0 +1,176 @@
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { X } from "lucide-react";
+import type { DashboardState } from "@/hooks/useDashboard";
+import type { Channel, ResolutionType } from "@/lib/types";
+import { MOCK_CHANNELS, MOCK_QUEUES, MOCK_AGENTS } from "@/data/mock/seed";
+import { Input } from "@/components/ui/input";
+
+const CHANNELS: Channel[] = MOCK_CHANNELS;
+
+interface FilterBarProps {
+  dashboard: DashboardState;
+  compact?: boolean;
+}
+
+export function FilterBar({ dashboard, compact }: FilterBarProps) {
+  const { filters, updateFilter, resetFilters } = dashboard;
+
+  const hasActiveFilters =
+    filters.channels.length > 0 ||
+    filters.queues.length > 0 ||
+    filters.agents.length > 0 ||
+    filters.tags.length > 0 ||
+    filters.resolutionType !== "" ||
+    filters.withinSla !== null ||
+    filters.withCsat !== null ||
+    filters.withReopening !== null;
+
+  return (
+    <div className={compact ? "flex items-center gap-2 flex-wrap" : "flex flex-col gap-3"}>
+      {/* Date range */}
+      <div className={compact ? "flex items-center gap-1" : "flex flex-col gap-1"}>
+        {!compact && <label className="text-xs font-medium text-muted-foreground">Período (fechamento)</label>}
+        <div className="flex items-center gap-1">
+          <Input
+            type="date"
+            value={filters.dateFrom}
+            onChange={(e) => updateFilter("dateFrom", e.target.value)}
+            className="h-8 text-xs w-36"
+          />
+          <span className="text-muted-foreground text-xs">→</span>
+          <Input
+            type="date"
+            value={filters.dateTo}
+            onChange={(e) => updateFilter("dateTo", e.target.value)}
+            className="h-8 text-xs w-36"
+          />
+        </div>
+      </div>
+
+      {/* Channel */}
+      <div className={compact ? "" : "flex flex-col gap-1"}>
+        {!compact && <label className="text-xs font-medium text-muted-foreground">Canal</label>}
+        <Select
+          value={filters.channels[0] ?? "_all"}
+          onValueChange={(v) => updateFilter("channels", v === "_all" ? [] : [v as Channel])}
+        >
+          <SelectTrigger className="h-8 text-xs w-36">
+            <SelectValue placeholder="Todos os canais" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_all">Todos os canais</SelectItem>
+            {CHANNELS.map((c) => (
+              <SelectItem key={c} value={c}>{c}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Queue */}
+      <div className={compact ? "" : "flex flex-col gap-1"}>
+        {!compact && <label className="text-xs font-medium text-muted-foreground">Fila</label>}
+        <Select
+          value={filters.queues[0] ?? "_all"}
+          onValueChange={(v) => updateFilter("queues", v === "_all" ? [] : [v])}
+        >
+          <SelectTrigger className="h-8 text-xs w-40">
+            <SelectValue placeholder="Todas as filas" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_all">Todas as filas</SelectItem>
+            {MOCK_QUEUES.map((q) => (
+              <SelectItem key={q.id} value={q.name}>{q.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Agent */}
+      <div className={compact ? "" : "flex flex-col gap-1"}>
+        {!compact && <label className="text-xs font-medium text-muted-foreground">Agente</label>}
+        <Select
+          value={filters.agents[0] ?? "_all"}
+          onValueChange={(v) => updateFilter("agents", v === "_all" ? [] : [v])}
+        >
+          <SelectTrigger className="h-8 text-xs w-40">
+            <SelectValue placeholder="Todos os agentes" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_all">Todos os agentes</SelectItem>
+            {MOCK_AGENTS.map((a) => (
+              <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Resolution Type */}
+      <div className={compact ? "" : "flex flex-col gap-1"}>
+        {!compact && <label className="text-xs font-medium text-muted-foreground">Resolução</label>}
+        <Select
+          value={filters.resolutionType || "_all"}
+          onValueChange={(v) => updateFilter("resolutionType", v === "_all" ? "" : v as ResolutionType)}
+        >
+          <SelectTrigger className="h-8 text-xs w-36">
+            <SelectValue placeholder="Bot / Humano" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_all">Bot / Humano</SelectItem>
+            <SelectItem value="bot">Apenas Bot</SelectItem>
+            <SelectItem value="humano">Apenas Humano</SelectItem>
+            <SelectItem value="hibrido">Híbrido</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* SLA */}
+      <div className={compact ? "" : "flex flex-col gap-1"}>
+        {!compact && <label className="text-xs font-medium text-muted-foreground">SLA</label>}
+        <Select
+          value={filters.withinSla === null ? "_all" : String(filters.withinSla)}
+          onValueChange={(v) => updateFilter("withinSla", v === "_all" ? null : v === "true")}
+        >
+          <SelectTrigger className="h-8 text-xs w-36">
+            <SelectValue placeholder="SLA" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_all">Todos</SelectItem>
+            <SelectItem value="true">Dentro do SLA</SelectItem>
+            <SelectItem value="false">Fora do SLA</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* CSAT */}
+      <div className={compact ? "" : "flex flex-col gap-1"}>
+        {!compact && <label className="text-xs font-medium text-muted-foreground">CSAT</label>}
+        <Select
+          value={filters.withCsat === null ? "_all" : String(filters.withCsat)}
+          onValueChange={(v) => updateFilter("withCsat", v === "_all" ? null : v === "true")}
+        >
+          <SelectTrigger className="h-8 text-xs w-36">
+            <SelectValue placeholder="CSAT" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_all">Todos</SelectItem>
+            <SelectItem value="true">Com CSAT</SelectItem>
+            <SelectItem value="false">Sem CSAT</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {hasActiveFilters && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={resetFilters}
+          className="h-8 gap-1 text-xs text-muted-foreground hover:text-foreground"
+        >
+          <X size={12} />
+          Limpar
+        </Button>
+      )}
+    </div>
+  );
+}

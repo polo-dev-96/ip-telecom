@@ -1,0 +1,336 @@
+Quero que você construa um site dashboard completo no Replit para análise de atendimento multicanal inspirado em uma operação tipo Fortics SZ.chat.
+
+REGRRA MAIS IMPORTANTE:
+Este dashboard deve analisar APENAS atendimentos finalizados. Considere somente registros com status como:
+- finalizado
+- fechado
+- resolvido
+
+Todo o dashboard deve filtrar a base por:
+status final válido + closedAt/data_fechamento preenchido
+
+Ou seja:
+- não mostrar backlog
+- não mostrar fila atual
+- não mostrar atendimentos em andamento
+- não mostrar alertas de conversas abertas
+- não mostrar widgets operacionais de tempo real focados em atendimento aberto
+
+O foco é exclusivamente pós-atendimento, após a finalização do caso.
+
+OBJETIVO DO PRODUTO:
+Criar um dashboard web moderno, responsivo e profissional para acompanhamento de performance de atendimentos finalizados em múltiplos canais como WhatsApp, Instagram, Webchat, E-mail e Telegram, com dados fictícios por enquanto, mas com arquitetura pronta para futuramente conectar em banco de dados real e/ou API.
+
+STACK DESEJADA:
+- Next.js com TypeScript
+- Tailwind CSS
+- shadcn/ui
+- Recharts para gráficos
+- ícones com lucide-react
+- arquitetura organizada e escalável
+- pronto para rodar no Replit
+
+IDIOMA:
+Todo o sistema em português do Brasil.
+
+ESTILO VISUAL:
+- visual executivo e moderno
+- layout clean, profissional e premium
+- sidebar lateral
+- header com filtros globais
+- cards bem destacados
+- gráficos elegantes
+- modo claro e escuro
+- responsivo para desktop e tablet
+- sensação de produto SaaS
+
+ESCOPO FUNCIONAL:
+O sistema deve ter as seguintes páginas/abas:
+
+1. Visão Geral
+Resumo executivo dos atendimentos finalizados com cards e gráficos principais.
+
+2. Atendimentos Finalizados
+Tabela detalhada com paginação, busca, filtros e drill-down.
+
+3. Canais
+Comparativo entre WhatsApp, Instagram, Webchat, E-mail e Telegram.
+
+4. Agentes
+Desempenho por agente, sempre considerando somente atendimentos já encerrados.
+
+5. Automação
+Indicadores sobre atendimentos encerrados por bot, handoff e resolução híbrida.
+
+6. Qualidade e Satisfação
+CSAT, NPS, FCR, temas, reincidência e qualidade geral dos atendimentos finalizados.
+
+7. Detalhe do Atendimento
+Tela individual com timeline resumida do atendimento encerrado, dados do canal, agente, tempos e pesquisa de satisfação.
+
+FILTROS GLOBAIS:
+Criar filtros funcionais no topo do dashboard:
+- período por data de fechamento
+- canal
+- fila/equipe
+- agente
+- tag/tema
+- bot vs humano
+- dentro do SLA vs fora do SLA
+- com CSAT respondido vs sem CSAT
+- com reabertura vs sem reabertura
+
+MÉTRICAS PRINCIPAIS:
+Todas devem ser calculadas APENAS com atendimentos finalizados.
+
+Cards principais:
+- total de atendimentos finalizados
+- variação percentual vs período anterior
+- TMR/TTR médio
+- TMR/TTR mediano
+- TMR/TTR p90
+- SLA de resolução
+- FCR
+- CSAT
+- NPS
+- taxa de automação
+- taxa de transferência
+- tempo médio de handoff bot -> humano
+- tempo médio de pós-atendimento (ACW)
+- percentual com registro completo/compliance
+
+DEFINIÇÕES IMPORTANTES:
+- Atendimentos finalizados = registros com status final e data de fechamento
+- TTR/TMR = closedAt - openedAt
+- SLA resolução = percentual encerrado dentro da meta configurada
+- FCR = percentual encerrado sem reabertura dentro de janela simulada
+- CSAT = percentual de notas positivas
+- NPS = promotores - detratores
+- taxa de automação = encerrados sem intervenção humana
+- handoff = tempo entre escalonamento do bot e primeira resposta humana
+- taxa de transferência = percentual de atendimentos com 1 ou mais transferências
+
+GRÁFICOS QUE DEVEM EXISTIR:
+1. Linha de atendimentos finalizados por dia
+2. Barras de atendimentos finalizados por canal
+3. Barras empilhadas de resolvido por bot vs humano
+4. Barras de SLA de resolução por canal
+5. Linha de TTR p50, média e p90 ao longo do tempo
+6. Barras de CSAT por canal
+7. Barras de CSAT por agente
+8. Linha de NPS por semana ou mês
+9. Pareto de tags/temas dos atendimentos finalizados
+10. Barras de FCR por tema
+11. Barras de taxa de transferência por equipe
+12. Barras de handoff médio por fluxo automatizado
+13. Heatmap de fechamentos por dia da semana e hora
+14. Ranking de agentes por volume, SLA, CSAT e FCR
+
+TABELAS IMPORTANTES:
+1. Tabela de atendimentos finalizados recentes com:
+- protocolo
+- canal
+- cliente mascarado
+- agente
+- fila
+- data de abertura
+- data de fechamento
+- TTR
+- SLA
+- FCR
+- CSAT
+- automação
+- transferências
+- tags
+
+2. Ranking de agentes
+3. Ranking de canais
+4. Ranking de temas/tags
+5. Tabela de atendimentos reabertos
+6. Tabela de atendimentos fora do SLA
+7. Tabela de atendimentos com piores notas de satisfação
+
+DADOS FICTÍCIOS:
+Quero dados mockados, porém realistas, gerados automaticamente no projeto.
+
+Crie pelo menos 300 a 800 registros fictícios de atendimentos finalizados, distribuídos entre canais, agentes, filas e períodos.
+
+Os dados devem parecer de uma operação real, com:
+- volumes diferentes por canal
+- tempos diferentes por canal
+- agentes com performances distintas
+- alguns atendimentos 100% automatizados
+- alguns com handoff
+- alguns com transferências
+- alguns com reabertura
+- alguns com CSAT e NPS
+- alguns sem resposta de pesquisa
+- alguns fora do SLA
+- temas/tags variados
+
+ESTRUTURA DO MOCK DATA:
+Criar uma estrutura como:
+
+closedAttendances: [
+  {
+    id: string,
+    protocol: string,
+    customerIdMasked: string,
+    customerNameMasked: string,
+    channel: "WhatsApp" | "Instagram" | "Webchat" | "Email" | "Telegram",
+    queue: string,
+    team: string,
+    agentId: string | null,
+    agentName: string | null,
+    openedAt: string,
+    firstResponseAt: string | null,
+    botEscalatedAt: string | null,
+    firstHumanResponseAt: string | null,
+    closedAt: string,
+    status: "finalizado" | "fechado" | "resolvido",
+    resolutionType: "humano" | "bot" | "hibrido",
+    hadBot: boolean,
+    automatedOnly: boolean,
+    hadHandoff: boolean,
+    handoffSeconds: number | null,
+    transferCount: number,
+    acwSeconds: number,
+    ttrMinutes: number,
+    frtMinutes: number | null,
+    slaResolutionTargetMinutes: number,
+    withinResolutionSla: boolean,
+    resolvedFirstContact: boolean,
+    reopenedWithin7Days: boolean,
+    csatScore: number | null,
+    npsScore: number | null,
+    tags: string[],
+    sentiment: "positivo" | "neutro" | "negativo",
+    complianceRecordComplete: boolean,
+    issueType: string,
+    campaignSource: string | null
+  }
+]
+
+Também criar:
+- lista de agentes
+- lista de filas/equipes
+- lista de canais
+- lista de tags
+- configurações de SLA por canal ou equipe
+
+ARQUITETURA PREPARADA PARA FUTURA INTEGRAÇÃO:
+Isso é muito importante.
+
+Quero que você organize o projeto para que depois eu consiga trocar o mock por banco/API sem refatoração grande.
+
+Crie:
+- interfaces/types centralizados
+- camada de adapter de dados
+- serviços de agregação
+- funções de cálculo separadas
+- hooks de filtro e dashboard state
+- mock adapter separado do adapter futuro
+
+Estrutura sugerida:
+- /app
+- /components
+- /components/charts
+- /components/dashboard
+- /lib
+- /lib/types
+- /lib/utils
+- /lib/formatters
+- /data/mock
+- /data/adapters
+- /services
+- /hooks
+
+Criar uma interface como:
+DashboardDataProvider
+
+Com métodos como:
+- getClosedAttendances(filters)
+- getExecutiveSummary(filters)
+- getChannelMetrics(filters)
+- getAgentMetrics(filters)
+- getAutomationMetrics(filters)
+- getQualityMetrics(filters)
+- getAttendanceById(id)
+
+Implementar primeiro um MockDashboardDataProvider.
+Deixar preparado para no futuro existir:
+- DatabaseDashboardDataProvider
+- ApiDashboardDataProvider
+
+REQUISITOS DE CÁLCULO:
+Implemente funções reutilizáveis para:
+- calcular TTR médio, mediano e p90
+- calcular SLA de resolução
+- calcular FCR
+- calcular CSAT
+- calcular NPS
+- calcular taxa de automação
+- calcular taxa de transferência
+- calcular handoff médio
+- calcular ACW médio
+- agrupar por canal
+- agrupar por agente
+- agrupar por período
+- gerar comparativo com período anterior
+
+EXPERIÊNCIA DO USUÁRIO:
+- filtros reativos
+- loading states
+- empty states
+- skeletons
+- badges coloridas de SLA, CSAT e status
+- cards com tooltip explicando a métrica
+- tabela com ordenação
+- busca textual
+- exportação CSV da tabela de atendimentos finalizados
+- drill-down clicando em canal, agente ou tag
+- navegação fluida
+
+O QUE NÃO DEVE TER:
+- nada focado em atendimento aberto
+- nada focado em fila ao vivo
+- nada focado em backlog operacional em tempo real
+- nada focado em monitor de agentes online
+- nada focado em conversa em andamento
+
+APENAS PÓS-ATENDIMENTO FINALIZADO.
+
+DADOS E REGRAS DE NEGÓCIO:
+Assuma que a métrica principal é orientada pela data de fechamento.
+Os atendimentos devem entrar nos gráficos do período conforme closedAt.
+Permita comparar:
+- período atual vs anterior
+- canal vs canal
+- agente vs agente
+- bot vs humano
+- dentro SLA vs fora SLA
+
+QUALIDADE TÉCNICA:
+- código limpo
+- componentes reutilizáveis
+- tipagem forte
+- sem hardcode espalhado
+- boa separação de responsabilidades
+- pronto para manutenção
+- pronto para futura conexão com PostgreSQL, Supabase ou API REST
+
+ENTREGA ESPERADA:
+Quero o projeto completo funcionando no Replit, com:
+- estrutura de arquivos
+- páginas
+- componentes
+- mocks
+- serviços
+- filtros
+- gráficos
+- tabelas
+- seed de dados
+- README curto explicando como rodar
+- comentários TODO onde futuramente entrará integração com banco/API
+
+Se possível, já crie uma primeira versão visualmente bonita e usável, com dados coerentes e boa experiência de navegação.
