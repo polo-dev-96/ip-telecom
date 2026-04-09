@@ -5,6 +5,7 @@ import {
   calcDailyTimeSeries,
   calcTtrTimeSeries,
   calcHeatmap,
+  calcHourlyPeaks,
 } from "@/lib/utils/calculations";
 
 // Mock data spans Jan 2025 - Apr 2025, so default to that range
@@ -34,6 +35,7 @@ export function useDashboard() {
   const dailyTimeSeries = useMemo(() => calcDailyTimeSeries(closedAttendances), [closedAttendances]);
   const ttrTimeSeries = useMemo(() => calcTtrTimeSeries(closedAttendances), [closedAttendances]);
   const heatmap = useMemo(() => calcHeatmap(closedAttendances), [closedAttendances]);
+  const hourlyPeaks = useMemo(() => calcHourlyPeaks(closedAttendances), [closedAttendances]);
 
   function updateFilter<K extends keyof DashboardFilters>(key: K, value: DashboardFilters[K]) {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -57,6 +59,7 @@ export function useDashboard() {
     dailyTimeSeries,
     ttrTimeSeries,
     heatmap,
+    hourlyPeaks,
   };
 }
 

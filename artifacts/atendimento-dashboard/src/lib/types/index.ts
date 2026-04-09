@@ -90,6 +90,14 @@ export interface ExecutiveSummary {
   avgHandoffSeconds: number;
   avgAcwSeconds: number;
   compliancePct: number;
+  tmaMean: number;
+  tmeMean: number;
+  tmrMean: number;
+  tmaVariationPct: number;
+  tmeVariationPct: number;
+  tmrVariationPct: number;
+  avgPerDay: number;
+  avgPerMonth: number;
 }
 
 export interface ChannelMetric {

@@ -65,16 +65,55 @@ export function calcComplianceRate(attendances: ClosedAttendance[]): number {
   return (attendances.filter((a) => a.complianceRecordComplete).length / attendances.length) * 100;
 }
 
+function calcTma(attendances: ClosedAttendance[]): number {
+  const vals = attendances.map((a) => {
+    const frt = a.frtMinutes ?? 0;
+    return Math.max(a.ttrMinutes - frt, 0);
+  });
+  return calcMean(vals);
+}
+
+function calcTme(attendances: ClosedAttendance[]): number {
+  const vals = attendances
+    .filter((a) => a.frtMinutes !== null)
+    .map((a) => a.frtMinutes as number);
+  return calcMean(vals);
+}
+
+function calcAvgPerDay(attendances: ClosedAttendance[]): number {
+  if (attendances.length === 0) return 0;
+  const days = new Set(attendances.map((a) => a.closedAt.slice(0, 10)));
+  return attendances.length / days.size;
+}
+
+function calcAvgPerMonth(attendances: ClosedAttendance[]): number {
+  if (attendances.length === 0) return 0;
+  const months = new Set(attendances.map((a) => a.closedAt.slice(0, 7)));
+  return attendances.length / months.size;
+}
+
+function variationPct(current: number, previous: number): number {
+  if (previous === 0) return 0;
+  return ((current - previous) / previous) * 100;
+}
+
 export function calcExecutiveSummary(
   current: ClosedAttendance[],
   previous: ClosedAttendance[]
 ): ExecutiveSummary {
   const ttrs = current.map((a) => a.ttrMinutes);
+  const tmaCurrent = calcTma(current);
+  const tmeCurrent = calcTme(current);
+  const tmrCurrent = calcMean(ttrs);
+  const tmaPrev = previous.length > 0 ? calcTma(previous) : 0;
+  const tmePrev = previous.length > 0 ? calcTme(previous) : 0;
+  const tmrPrev = previous.length > 0 ? calcMean(previous.map((a) => a.ttrMinutes)) : 0;
+
   return {
     totalClosed: current.length,
     totalClosedPrev: previous.length,
     variationPct: previous.length > 0 ? ((current.length - previous.length) / previous.length) * 100 : 0,
-    ttrMean: calcMean(ttrs),
+    ttrMean: tmrCurrent,
     ttrMedian: calcMedian(ttrs),
     ttrP90: calcPercentile(ttrs, 90),
     slaCompliancePct: calcSlaCompliance(current),
@@ -86,6 +125,14 @@ export function calcExecutiveSummary(
     avgHandoffSeconds: calcAvgHandoff(current),
     avgAcwSeconds: calcAvgAcw(current),
     compliancePct: calcComplianceRate(current),
+    tmaMean: tmaCurrent,
+    tmeMean: tmeCurrent,
+    tmrMean: tmrCurrent,
+    tmaVariationPct: variationPct(tmaCurrent, tmaPrev),
+    tmeVariationPct: variationPct(tmeCurrent, tmePrev),
+    tmrVariationPct: variationPct(tmrCurrent, tmrPrev),
+    avgPerDay: calcAvgPerDay(current),
+    avgPerMonth: calcAvgPerMonth(current),
   };
 }
 
@@ -247,6 +294,18 @@ export function calcHeatmap(attendances: ClosedAttendance[]): HeatmapCell[] {
     }
   }
   return result;
+}
+
+export function calcHourlyPeaks(attendances: ClosedAttendance[]): { hour: string; total: number }[] {
+  const byHour: Record<number, number> = {};
+  for (const a of attendances) {
+    const h = new Date(a.openedAt).getHours();
+    byHour[h] = (byHour[h] ?? 0) + 1;
+  }
+  return Array.from({ length: 24 }, (_, h) => ({
+    hour: `${String(h).padStart(2, "0")}:00`,
+    total: byHour[h] ?? 0,
+  }));
 }
 
 export function formatMinutes(minutes: number): string {

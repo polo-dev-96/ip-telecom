@@ -4,11 +4,9 @@ import {
   CheckCircle2,
   Radio,
   Users,
-  Bot,
-  Star,
   ChevronLeft,
   ChevronRight,
-  BarChart3,
+  Activity,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -18,8 +16,7 @@ const NAV_ITEMS = [
   { path: "/atendimentos", label: "Atendimentos", icon: CheckCircle2 },
   { path: "/canais", label: "Canais", icon: Radio },
   { path: "/agentes", label: "Agentes", icon: Users },
-  { path: "/automacao", label: "Automação", icon: Bot },
-  { path: "/qualidade", label: "Qualidade", icon: Star },
+  { path: "/acompanhamento", label: "Acompanhamento", icon: Activity },
 ];
 
 export function Sidebar() {
@@ -34,9 +31,7 @@ export function Sidebar() {
     >
       {/* Logo */}
       <div className={cn("flex items-center gap-2 px-4 py-5 border-b border-sidebar-border", collapsed && "justify-center px-2")}>
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground shrink-0">
-          <BarChart3 size={16} />
-        </div>
+        <img src="/Icone_Logo.png" alt="Logo" className="w-8 h-8 rounded-lg shrink-0 object-contain" />
         {!collapsed && (
           <span className="font-semibold text-sm truncate">Atendimento Analytics</span>
         )}

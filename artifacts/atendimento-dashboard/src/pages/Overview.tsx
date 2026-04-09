@@ -1,15 +1,15 @@
 import type { DashboardState } from "@/hooks/useDashboard";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import {
-  CheckCircle2, Clock, Target, Star, Zap, ArrowRightLeft, Bot, Timer, Shield
+  CheckCircle2, Clock, Hourglass, Timer, TrendingUp, TrendingDown, CalendarDays, CalendarRange
 } from "lucide-react";
-import { fmtMinutes, fmtSeconds, fmtPct, fmtNumber } from "@/lib/utils/formatters";
+import { fmtMinutes, fmtPct, fmtNumber } from "@/lib/utils/formatters";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartTooltip,
-  ResponsiveContainer, Legend, BarChart as StackedBarChart,
+  LineChart, Line, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartTooltip,
+  ResponsiveContainer,
 } from "recharts";
-import { fmtShortDate, fmtMonthYear } from "@/lib/utils/formatters";
+import { fmtShortDate } from "@/lib/utils/formatters";
 
 interface OverviewProps {
   dashboard: DashboardState;
@@ -23,102 +23,88 @@ const CHART_COLORS = {
 };
 
 export function Overview({ dashboard }: OverviewProps) {
-  const { executiveSummary: s, dailyTimeSeries, ttrTimeSeries, channelMetrics, qualityMetrics } = dashboard;
+  const { executiveSummary: s, dailyTimeSeries, channelMetrics, hourlyPeaks } = dashboard;
 
   const channelData = channelMetrics.map((c) => ({
     name: c.channel,
     total: c.total,
-    sla: Math.round(c.slaCompliancePct),
-    csat: Math.round(c.csatPct),
-  }));
-
-  const automationData = channelMetrics.map((c) => ({
-    name: c.channel,
-    "Bot": Math.round(c.automationRate),
-    "Humano": Math.round(100 - c.automationRate),
   }));
 
   const dailySlice = dailyTimeSeries.slice(-30);
-  const ttrSlice = ttrTimeSeries.slice(-30);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Visão Geral</h1>
-        <p className="text-sm text-muted-foreground mt-1">Resumo executivo — atendimentos finalizados no período</p>
+        <p className="text-sm text-muted-foreground mt-1">Resumo executivo — atendimentos no período</p>
       </div>
 
-      {/* KPI cards */}
+      {/* KPI cards - Row 1 */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <MetricCard
-          title="Total Finalizados"
+          title="Total de Atendimentos no Período"
           value={fmtNumber(s.totalClosed)}
           trend={s.variationPct}
           icon={<CheckCircle2 size={18} />}
-          tooltip="Total de atendimentos com status finalizado/fechado/resolvido no período selecionado"
+          tooltip="Total de atendimentos finalizados no período selecionado"
         />
         <MetricCard
-          title="TMR Médio"
-          value={fmtMinutes(s.ttrMean)}
-          subtitle={`Mediana: ${fmtMinutes(s.ttrMedian)} · P90: ${fmtMinutes(s.ttrP90)}`}
+          title="TMA"
+          value={fmtMinutes(s.tmaMean)}
           icon={<Clock size={18} />}
-          tooltip="Tempo Médio de Resolução (closedAt - openedAt). P90 = percentil 90."
+          tooltip="Tempo Médio de Atendimento — duração média do atendimento pelo agente"
           color="blue"
         />
         <MetricCard
-          title="SLA de Resolução"
-          value={fmtPct(s.slaCompliancePct)}
-          icon={<Target size={18} />}
-          tooltip="Percentual de atendimentos encerrados dentro da meta de SLA configurada por canal/fila"
-          color={s.slaCompliancePct >= 80 ? "green" : s.slaCompliancePct >= 60 ? "amber" : "red"}
+          title="TME"
+          value={fmtMinutes(s.tmeMean)}
+          icon={<Hourglass size={18} />}
+          tooltip="Tempo Médio de Espera — tempo médio até a primeira resposta"
+          color="amber"
         />
         <MetricCard
-          title="FCR"
-          value={fmtPct(s.fcrPct)}
-          icon={<CheckCircle2 size={18} />}
-          tooltip="First Contact Resolution — percentual encerrado sem reabertura nos últimos 7 dias"
-          color={s.fcrPct >= 80 ? "green" : "amber"}
+          title="TMR"
+          value={fmtMinutes(s.tmrMean)}
+          icon={<Timer size={18} />}
+          tooltip="Tempo Médio de Resolução — tempo total médio de abertura até fechamento"
+          color="purple"
         />
         <MetricCard
-          title="CSAT"
-          value={fmtPct(s.csatPct)}
-          icon={<Star size={18} />}
-          tooltip="Customer Satisfaction Score — percentual de avaliações positivas (nota ≥ 4)"
-          color={s.csatPct >= 75 ? "green" : s.csatPct >= 55 ? "amber" : "red"}
+          title="TMA%"
+          value={fmtPct(s.tmaVariationPct)}
+          icon={s.tmaVariationPct >= 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
+          tooltip="Variação percentual do TMA em relação ao período anterior"
+          color={s.tmaVariationPct <= 0 ? "green" : "red"}
         />
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      {/* KPI cards - Row 2 */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         <MetricCard
-          title="NPS"
-          value={fmtNumber(Math.round(s.nps))}
-          icon={<Star size={18} />}
-          tooltip="Net Promoter Score = promotores (9-10) - detratores (0-6)"
-          color={s.nps >= 50 ? "green" : s.nps >= 0 ? "amber" : "red"}
+          title="TME%"
+          value={fmtPct(s.tmeVariationPct)}
+          icon={s.tmeVariationPct >= 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
+          tooltip="Variação percentual do TME em relação ao período anterior"
+          color={s.tmeVariationPct <= 0 ? "green" : "red"}
         />
         <MetricCard
-          title="Taxa Automação"
-          value={fmtPct(s.automationRate)}
-          icon={<Bot size={18} />}
-          tooltip="Percentual de atendimentos encerrados sem qualquer intervenção humana"
+          title="TMR%"
+          value={fmtPct(s.tmrVariationPct)}
+          icon={s.tmrVariationPct >= 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
+          tooltip="Variação percentual do TMR em relação ao período anterior"
+          color={s.tmrVariationPct <= 0 ? "green" : "red"}
         />
         <MetricCard
-          title="Taxa Transferência"
-          value={fmtPct(s.transferRate)}
-          icon={<ArrowRightLeft size={18} />}
-          tooltip="Percentual de atendimentos com ao menos uma transferência de fila ou agente"
+          title="Média de Atendimentos/Dia"
+          value={fmtNumber(Math.round(s.avgPerDay))}
+          icon={<CalendarDays size={18} />}
+          tooltip="Média de atendimentos finalizados por dia no período"
         />
         <MetricCard
-          title="Handoff Médio"
-          value={fmtSeconds(s.avgHandoffSeconds)}
-          icon={<Zap size={18} />}
-          tooltip="Tempo médio entre o escalonamento pelo bot e a primeira resposta humana"
-        />
-        <MetricCard
-          title="ACW Médio"
-          value={fmtSeconds(s.avgAcwSeconds)}
-          icon={<Timer size={18} />}
-          tooltip="After Call Work — tempo médio de pós-atendimento registrado pelo agente"
+          title="Média de Atendimentos/Mês"
+          value={fmtNumber(Math.round(s.avgPerMonth))}
+          icon={<CalendarRange size={18} />}
+          tooltip="Média de atendimentos finalizados por mês no período"
         />
       </div>
 
@@ -164,73 +150,33 @@ export function Overview({ dashboard }: OverviewProps) {
           </CardContent>
         </Card>
 
-        {/* TTR evolution */}
-        <Card>
+        {/* Hourly peaks */}
+        <Card className="xl:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Evolução do TMR — P50, Média e P90 (min)</CardTitle>
+            <CardTitle className="text-sm font-medium">Picos de Atendimentos — Distribuição por Hora do Dia</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={ttrSlice}>
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={hourlyPeaks}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="date" tickFormatter={fmtShortDate} tick={{ fontSize: 10 }} />
+                <XAxis dataKey="hour" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 10 }} />
                 <RechartTooltip
                   contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                  labelFormatter={(l) => `Data: ${l}`}
+                  labelFormatter={(l) => `Horário: ${l}`}
                 />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Line type="monotone" dataKey="median" name="P50 (Mediana)" stroke={CHART_COLORS.primary} strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="mean" name="Média" stroke={CHART_COLORS.secondary} strokeWidth={2} dot={false} strokeDasharray="5 5" />
-                <Line type="monotone" dataKey="p90" name="P90" stroke={CHART_COLORS.tertiary} strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Bot vs Human stacked */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Resolução: Bot vs Humano por Canal (%)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <StackedBarChart data={automationData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <RechartTooltip
-                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Bar dataKey="Bot" stackId="a" fill={CHART_COLORS.tertiary} radius={[0, 0, 0, 0]} />
-                <Bar dataKey="Humano" stackId="a" fill={CHART_COLORS.primary} radius={[4, 4, 0, 0]} />
-              </StackedBarChart>
+                <defs>
+                  <linearGradient id="peakGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={CHART_COLORS.accent} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={CHART_COLORS.accent} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <Area type="monotone" dataKey="total" name="Atendimentos" stroke={CHART_COLORS.accent} strokeWidth={2} fill="url(#peakGradient)" />
+              </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
-
-      {/* NPS by month */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">NPS por Mês</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={qualityMetrics.npsByPeriod}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="period" tickFormatter={fmtMonthYear} tick={{ fontSize: 10 }} />
-              <YAxis domain={[-100, 100]} tick={{ fontSize: 10 }} />
-              <RechartTooltip
-                contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                labelFormatter={(l) => `Período: ${fmtMonthYear(l)}`}
-              />
-              <Line type="monotone" dataKey="nps" name="NPS" stroke={CHART_COLORS.accent} strokeWidth={2} dot={{ r: 3 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
     </div>
   );
 }

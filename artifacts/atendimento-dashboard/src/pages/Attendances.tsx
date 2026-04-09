@@ -5,8 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { SlaBadge, CsatBadge, ChannelBadge, ResolutionBadge } from "@/components/dashboard/StatusBadge";
+import { ChannelBadge } from "@/components/dashboard/StatusBadge";
 import { fmtDateTime, fmtMinutes } from "@/lib/utils/formatters";
 import { Search, Download, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, ExternalLink } from "lucide-react";
 import { Link } from "wouter";
@@ -69,15 +68,15 @@ export function Attendances({ dashboard }: AttendancesProps) {
   }
 
   function exportCsv() {
-    const headers = ["Protocolo","Canal","Cliente","Agente","Fila","Abertura","Fechamento","TMR (min)","SLA","FCR","CSAT","Automação","Transferências","Tags"];
-    const rows = sorted.map((a) => [
-      a.protocol, a.channel, a.customerNameMasked, a.agentName ?? "Bot",
-      a.queue, a.openedAt, a.closedAt, a.ttrMinutes,
-      a.withinResolutionSla ? "Sim" : "Não",
-      a.resolvedFirstContact ? "Sim" : "Não",
-      a.csatScore ?? "N/A",
-      a.resolutionType, a.transferCount, a.tags.join("|")
-    ]);
+    const headers = ["Protocolo","Canal","Cliente","Agente","Fechamento","TMR (min)","TMA (min)","TME (min)"];
+    const rows = sorted.map((a) => {
+      const frt = a.frtMinutes ?? 0;
+      const tma = Math.max(a.ttrMinutes - frt, 0);
+      return [
+        a.protocol, a.channel, a.customerNameMasked, a.agentName ?? "Bot",
+        a.closedAt, a.ttrMinutes, Math.round(tma), a.frtMinutes ?? "N/A"
+      ];
+    });
     const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -139,11 +138,16 @@ export function Attendances({ dashboard }: AttendancesProps) {
                       TMR <SortIcon k="ttrMinutes" />
                     </button>
                   </TableHead>
-                  <TableHead>SLA</TableHead>
-                  <TableHead>FCR</TableHead>
-                  <TableHead>CSAT</TableHead>
-                  <TableHead>Resolução</TableHead>
-                  <TableHead className="whitespace-nowrap">Tags</TableHead>
+                  <TableHead className="whitespace-nowrap">
+                    <button onClick={() => toggleSort("frtMinutes")} className="flex items-center gap-1 hover:text-foreground">
+                      TMA <SortIcon k="frtMinutes" />
+                    </button>
+                  </TableHead>
+                  <TableHead className="whitespace-nowrap">
+                    <button onClick={() => toggleSort("frtMinutes")} className="flex items-center gap-1 hover:text-foreground">
+                      TME <SortIcon k="frtMinutes" />
+                    </button>
+                  </TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
@@ -156,22 +160,8 @@ export function Attendances({ dashboard }: AttendancesProps) {
                     <TableCell className="whitespace-nowrap">{a.agentName ?? <span className="text-muted-foreground italic">Bot</span>}</TableCell>
                     <TableCell className="whitespace-nowrap text-muted-foreground">{fmtDateTime(a.closedAt)}</TableCell>
                     <TableCell className="whitespace-nowrap">{fmtMinutes(a.ttrMinutes)}</TableCell>
-                    <TableCell><SlaBadge within={a.withinResolutionSla} /></TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={a.resolvedFirstContact ? "border-emerald-500 text-emerald-700 dark:text-emerald-400 text-xs" : "text-xs text-muted-foreground"}>
-                        {a.resolvedFirstContact ? "Sim" : "Não"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell><CsatBadge score={a.csatScore} /></TableCell>
-                    <TableCell><ResolutionBadge type={a.resolutionType} /></TableCell>
-                    <TableCell>
-                      <div className="flex gap-1 flex-wrap max-w-32">
-                        {a.tags.slice(0, 2).map((t) => (
-                          <Badge key={t} variant="secondary" className="text-xs px-1.5 py-0">{t}</Badge>
-                        ))}
-                        {a.tags.length > 2 && <span className="text-muted-foreground text-xs">+{a.tags.length - 2}</span>}
-                      </div>
-                    </TableCell>
+                    <TableCell className="whitespace-nowrap">{fmtMinutes(Math.max(a.ttrMinutes - (a.frtMinutes ?? 0), 0))}</TableCell>
+                    <TableCell className="whitespace-nowrap">{a.frtMinutes !== null ? fmtMinutes(a.frtMinutes) : <span className="text-muted-foreground italic">—</span>}</TableCell>
                     <TableCell>
                       <Link to={`/atendimento/${a.id}`}>
                         <Button variant="ghost" size="icon" className="h-7 w-7">
@@ -183,7 +173,7 @@ export function Attendances({ dashboard }: AttendancesProps) {
                 ))}
                 {paginated.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={12} className="text-center py-10 text-muted-foreground text-sm">
+                    <TableCell colSpan={8} className="text-center py-10 text-muted-foreground text-sm">
                       Nenhum atendimento encontrado
                     </TableCell>
                   </TableRow>

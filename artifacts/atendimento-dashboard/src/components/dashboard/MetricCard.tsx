@@ -12,7 +12,7 @@ interface MetricCardProps {
   trend?: number;
   trendLabel?: string;
   icon?: ReactNode;
-  color?: "default" | "green" | "red" | "blue" | "amber";
+  color?: "default" | "green" | "red" | "blue" | "amber" | "purple";
   className?: string;
 }
 
@@ -22,6 +22,7 @@ const COLOR_MAP = {
   red: "text-red-600 dark:text-red-400",
   blue: "text-blue-600 dark:text-blue-400",
   amber: "text-amber-600 dark:text-amber-400",
+  purple: "text-purple-600 dark:text-purple-400",
 };
 
 export function MetricCard({
