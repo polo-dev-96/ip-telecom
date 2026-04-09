@@ -1,4 +1,4 @@
-import { Moon, Sun, SlidersHorizontal } from "lucide-react";
+import { Moon, Sun, SlidersHorizontal, Bell, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
 import { FilterBar } from "@/components/dashboard/FilterBar";
@@ -6,6 +6,7 @@ import type { DashboardState } from "@/hooks/useDashboard";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   dashboard: DashboardState;
@@ -20,8 +21,19 @@ export function Header({ dashboard }: HeaderProps) {
   const showFilters = !HIDE_FILTERS_ROUTES.includes(location);
 
   return (
-    <header className="sticky top-0 z-20 flex items-center gap-3 h-14 px-4 border-b bg-background/95 backdrop-blur">
-      <div className="flex-1 flex items-center gap-2 min-w-0">
+    <header className="sticky top-0 z-20 flex items-center gap-3 h-16 px-5 border-b bg-background/80 backdrop-blur-xl border-border/50 dark:border-white/[0.06] dark:bg-[#0B0F1A]/80">
+      {/* Subtle gradient line at top */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+
+      <div className="flex-1 flex items-center gap-4 min-w-0">
+        {/* Page indicator */}
+        <div className="hidden lg:flex items-center gap-2">
+          <Sparkles size={14} className="text-primary/60" />
+          <span className="text-xs text-muted-foreground/60 uppercase tracking-wider">
+            Dashboard
+          </span>
+        </div>
+
         {/* Quick filters visible on large screens */}
         {showFilters && (
           <div className="hidden xl:flex items-center gap-2 flex-wrap">
@@ -34,14 +46,18 @@ export function Header({ dashboard }: HeaderProps) {
       {showFilters && (
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button variant="outline" size="sm" className="xl:hidden gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="xl:hidden gap-2 border-border/60 bg-background/50 hover:bg-accent dark:border-white/[0.08] dark:bg-white/[0.02] dark:hover:bg-white/[0.06]"
+            >
               <SlidersHorizontal size={14} />
               Filtros
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-80">
+          <SheetContent side="right" className="w-80 bg-background/95 backdrop-blur-xl border-border/50 dark:bg-[#0B0F1A]/95 dark:border-white/[0.06]">
             <SheetHeader>
-              <SheetTitle>Filtros</SheetTitle>
+              <SheetTitle className="text-foreground">Filtros</SheetTitle>
             </SheetHeader>
             <div className="mt-4">
               <FilterBar dashboard={dashboard} />
@@ -50,15 +66,30 @@ export function Header({ dashboard }: HeaderProps) {
         </Sheet>
       )}
 
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={toggleTheme}
-        className="shrink-0"
-        aria-label="Alternar tema"
-      >
-        {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-      </Button>
+      {/* Actions */}
+      <div className="flex items-center gap-1">
+        {/* Notification bell with indicator */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative shrink-0 text-muted-foreground/70 hover:text-foreground hover:bg-accent dark:hover:bg-white/[0.06]"
+          aria-label="Notificações"
+        >
+          <Bell size={18} />
+          <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full animate-pulse" />
+        </Button>
+
+        {/* Theme toggle */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleTheme}
+          className="shrink-0 text-muted-foreground/70 hover:text-foreground hover:bg-accent dark:hover:bg-white/[0.06]"
+          aria-label="Alternar tema"
+        >
+          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+        </Button>
+      </div>
     </header>
   );
 }

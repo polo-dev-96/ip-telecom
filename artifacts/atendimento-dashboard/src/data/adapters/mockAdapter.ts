@@ -9,12 +9,15 @@ import {
   calcAgentMetrics,
   calcAutomationMetrics,
   calcQualityMetrics,
+  calcQueueMetrics,
+  type QueueMetric,
 } from "@/lib/utils/calculations";
 
 export interface DashboardDataProvider {
   getClosedAttendances(filters: DashboardFilters): ClosedAttendance[];
   getExecutiveSummary(filters: DashboardFilters): ExecutiveSummary;
   getChannelMetrics(filters: DashboardFilters): ChannelMetric[];
+  getQueueMetrics(filters: DashboardFilters): QueueMetric[];
   getAgentMetrics(filters: DashboardFilters): AgentMetric[];
   getAutomationMetrics(filters: DashboardFilters): AutomationMetric;
   getQualityMetrics(filters: DashboardFilters): QualityMetric;
@@ -66,6 +69,10 @@ export class MockDashboardDataProvider implements DashboardDataProvider {
 
   getChannelMetrics(filters: DashboardFilters): ChannelMetric[] {
     return calcChannelMetrics(applyFilters(this.data, filters));
+  }
+
+  getQueueMetrics(filters: DashboardFilters): QueueMetric[] {
+    return calcQueueMetrics(applyFilters(this.data, filters));
   }
 
   getAgentMetrics(filters: DashboardFilters): AgentMetric[] {

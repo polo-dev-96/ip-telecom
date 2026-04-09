@@ -8,10 +8,10 @@ import {
   calcHourlyPeaks,
 } from "@/lib/utils/calculations";
 
-// Mock data spans Jan 2025 - Apr 2025, so default to that range
+// Mock data spans Jan 2026 - Apr 2026, so default to that range
 export const DEFAULT_FILTERS: DashboardFilters = {
-  dateFrom: "2025-01-01",
-  dateTo: "2025-04-30",
+  dateFrom: "2026-01-01",
+  dateTo: "2026-04-30",
   channels: [],
   queues: [],
   agents: [],
@@ -28,6 +28,7 @@ export function useDashboard() {
   const closedAttendances = useMemo(() => dataProvider.getClosedAttendances(filters), [filters]);
   const executiveSummary = useMemo(() => dataProvider.getExecutiveSummary(filters), [filters]);
   const channelMetrics = useMemo(() => dataProvider.getChannelMetrics(filters), [filters]);
+  const queueMetrics = useMemo(() => dataProvider.getQueueMetrics(filters), [filters]);
   const agentMetrics = useMemo(() => dataProvider.getAgentMetrics(filters), [filters]);
   const automationMetrics = useMemo(() => dataProvider.getAutomationMetrics(filters), [filters]);
   const qualityMetrics = useMemo(() => dataProvider.getQualityMetrics(filters), [filters]);
@@ -53,6 +54,7 @@ export function useDashboard() {
     closedAttendances,
     executiveSummary,
     channelMetrics,
+    queueMetrics,
     agentMetrics,
     automationMetrics,
     qualityMetrics,

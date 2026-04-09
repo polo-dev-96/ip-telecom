@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Activity,
+  Zap,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -16,7 +17,7 @@ const NAV_ITEMS = [
   { path: "/atendimentos", label: "Atendimentos", icon: CheckCircle2 },
   { path: "/canais", label: "Canais", icon: Radio },
   { path: "/agentes", label: "Agentes", icon: Users },
-  { path: "/acompanhamento", label: "Acompanhamento", icon: Activity },
+  { path: "/acompanhamento", label: "Acompanhamento", icon: Activity, highlight: true },
 ];
 
 export function Sidebar() {
@@ -25,38 +26,72 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "relative flex flex-col border-r bg-sidebar text-sidebar-foreground transition-all duration-300 shrink-0",
-        collapsed ? "w-16" : "w-60"
+        "relative flex flex-col border-r border-white/[0.06] bg-[#0B0F1A]/95 backdrop-blur-xl text-sidebar-foreground transition-all duration-300 ease-out shrink-0",
+        collapsed ? "w-16" : "w-64"
       )}
     >
-      {/* Logo */}
-      <div className={cn("flex items-center gap-2 px-4 py-5 border-b border-sidebar-border", collapsed && "justify-center px-2")}>
-        <img src="/Icone_Logo.png" alt="Logo" className="w-8 h-8 rounded-lg shrink-0 object-contain" />
+      {/* Ambient glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.03] via-transparent to-purple-500/[0.02] pointer-events-none" />
+
+      {/* Logo section with premium styling */}
+      <div
+        className={cn(
+          "relative flex items-center gap-3 px-5 py-6 border-b border-white/[0.06]",
+          collapsed && "justify-center px-3"
+        )}
+      >
+        <div className="relative">
+          <img
+            src="/Icone_Logo.png"
+            alt="Logo"
+            className="w-9 h-9 rounded-xl shrink-0 object-contain shadow-lg shadow-primary/10"
+          />
+          {/* Status indicator pulse */}
+          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[#0B0F1A] animate-pulse-soft" />
+        </div>
         {!collapsed && (
-          <span className="font-semibold text-sm truncate">Atendimento Analytics</span>
+          <div className="flex flex-col min-w-0">
+            <span className="font-semibold text-sm tracking-tight truncate">IP Telecom</span>
+            <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">Analytics</span>
+          </div>
         )}
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 py-4 space-y-1 px-2">
-        {NAV_ITEMS.map(({ path, label, icon: Icon }) => (
-          <NavLink key={path} to={path} collapsed={collapsed} icon={<Icon size={18} />} label={label} />
+      {/* Navigation with enhanced styling */}
+      <nav className="relative flex-1 py-6 px-3 space-y-1">
+        {NAV_ITEMS.map(({ path, label, icon: Icon, highlight }) => (
+          <NavLink
+            key={path}
+            to={path}
+            collapsed={collapsed}
+            icon={<Icon size={18} />}
+            label={label}
+            highlight={highlight}
+          />
         ))}
       </nav>
 
-      {/* Footer tag */}
+      {/* Footer tag with premium card */}
       {!collapsed && (
-        <div className="px-4 py-3 border-t border-sidebar-border">
-          <p className="text-xs text-muted-foreground">Apenas atendimentos finalizados</p>
+        <div className="px-4 py-4 mx-4 mb-4">
+          <div className="relative overflow-hidden rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
+            <div className="relative flex items-center gap-2">
+              <Zap size={14} className="text-amber-400" />
+              <p className="text-[10px] text-muted-foreground/80 leading-tight">
+                Dados atualizados em tempo real
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Collapse toggle */}
+      {/* Collapse toggle - premium button */}
       <button
         onClick={() => setCollapsed((c) => !c)}
-        className="absolute -right-3 top-16 z-10 flex items-center justify-center w-6 h-6 rounded-full border bg-background text-foreground shadow-sm hover:bg-muted transition-colors"
+        className="absolute -right-3 top-20 z-10 flex items-center justify-center w-7 h-7 rounded-full border border-white/[0.1] bg-[#111827] text-foreground shadow-lg shadow-black/30 hover:bg-[#1a2332] hover:border-white/[0.15] hover:scale-110 transition-all duration-200"
       >
-        {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+        {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
       </button>
     </aside>
   );

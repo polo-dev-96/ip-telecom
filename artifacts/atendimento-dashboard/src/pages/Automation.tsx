@@ -44,7 +44,7 @@ export function Automation({ dashboard }: AutomationProps) {
           subtitle={`${fmtNumber(m.botOnly)} atendimentos somente por bot`}
           icon={<Bot size={18} />}
           tooltip="Percentual de atendimentos encerrados sem intervenção humana"
-          color="blue"
+          color="primary"
         />
         <MetricCard
           title="Handoff Médio"

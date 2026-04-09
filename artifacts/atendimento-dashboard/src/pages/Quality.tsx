@@ -32,28 +32,28 @@ export function Quality({ dashboard }: QualityProps) {
           value={fmtPct(q.csatPct)}
           icon={<Star size={18} />}
           tooltip="Percentual de avaliações positivas (nota ≥ 4 de 5)"
-          color={q.csatPct >= 75 ? "green" : q.csatPct >= 55 ? "amber" : "red"}
+          color={q.csatPct >= 75 ? "success" : q.csatPct >= 55 ? "warning" : "danger"}
         />
         <MetricCard
           title="NPS Médio"
           value={fmtNumber(Math.round(s.nps))}
           icon={<Star size={18} />}
           tooltip="Net Promoter Score = promotores (9-10) - detratores (0-6)"
-          color={s.nps >= 50 ? "green" : s.nps >= 0 ? "amber" : "red"}
+          color={s.nps >= 50 ? "success" : s.nps >= 0 ? "warning" : "danger"}
         />
         <MetricCard
           title="FCR Global"
           value={fmtPct(s.fcrPct)}
           icon={<CheckCircle2 size={18} />}
           tooltip="First Contact Resolution — sem reabertura em 7 dias"
-          color={s.fcrPct >= 80 ? "green" : "amber"}
+          color={s.fcrPct >= 80 ? "success" : "warning"}
         />
         <MetricCard
           title="Taxa Reincidência"
           value={fmtPct(q.reopenRate)}
           icon={<RefreshCw size={18} />}
           tooltip="Percentual de atendimentos reabertos nos 7 dias seguintes"
-          color={q.reopenRate <= 8 ? "green" : q.reopenRate <= 15 ? "amber" : "red"}
+          color={q.reopenRate <= 8 ? "success" : q.reopenRate <= 15 ? "warning" : "danger"}
         />
       </div>
 

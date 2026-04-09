@@ -2,7 +2,7 @@ import type { DashboardState } from "@/hooks/useDashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartTooltip,
-  ResponsiveContainer, Legend,
+  ResponsiveContainer, Legend, LabelList,
 } from "recharts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { fmtNumber } from "@/lib/utils/formatters";
@@ -45,7 +45,9 @@ export function Channels({ dashboard }: ChannelsProps) {
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
                 <RechartTooltip {...tooltip} />
-                <Bar dataKey="total" name="Atendimentos" fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="total" name="Atendimentos" fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]}>
+                  <LabelList dataKey="total" position="top" className="fill-foreground text-[10px] font-medium" />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -60,7 +62,9 @@ export function Channels({ dashboard }: ChannelsProps) {
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
                 <RechartTooltip {...tooltip} />
-                <Bar dataKey="sla" name="SLA %" fill={CHART_COLORS[1]} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="sla" name="SLA %" fill={CHART_COLORS[1]} radius={[4, 4, 0, 0]}>
+                  <LabelList dataKey="sla" position="top" className="fill-foreground text-[10px] font-medium" formatter={(v: number) => `${v}%`} />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

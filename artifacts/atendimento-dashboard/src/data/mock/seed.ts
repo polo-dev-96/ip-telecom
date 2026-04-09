@@ -97,8 +97,8 @@ function generateAttendance(index: number): ClosedAttendance {
   const queue = pick(QUEUES);
   const agentOrNull = Math.random() > 0.12 ? pick(AGENTS) : null;
 
-  const startDate = new Date("2025-01-01");
-  const endDate = new Date("2025-04-30");
+  const startDate = new Date("2026-01-01");
+  const endDate = new Date("2026-04-30");
   const openedAt = randomDate(startDate, endDate);
 
   const frtBase = channel === "Email" ? rnd(10, 120) : rnd(1, 30);

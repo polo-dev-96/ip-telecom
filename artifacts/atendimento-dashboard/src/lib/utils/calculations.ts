@@ -152,6 +152,26 @@ export function calcChannelMetrics(attendances: ClosedAttendance[]): ChannelMetr
   });
 }
 
+export interface QueueMetric {
+  queue: string;
+  total: number;
+  ttrMean: number;
+  slaCompliancePct: number;
+}
+
+export function calcQueueMetrics(attendances: ClosedAttendance[]): QueueMetric[] {
+  const queues = Array.from(new Set(attendances.map((a) => a.queue)));
+  return queues.map((queue) => {
+    const group = attendances.filter((a) => a.queue === queue);
+    return {
+      queue,
+      total: group.length,
+      ttrMean: calcMean(group.map((a) => a.ttrMinutes)),
+      slaCompliancePct: calcSlaCompliance(group),
+    };
+  }).sort((a, b) => b.total - a.total);
+}
+
 export function calcAgentMetrics(attendances: ClosedAttendance[]): AgentMetric[] {
   const agentIds = Array.from(new Set(attendances.filter((a) => a.agentId).map((a) => a.agentId as string)));
   return agentIds.map((agentId) => {

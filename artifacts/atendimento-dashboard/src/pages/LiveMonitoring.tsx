@@ -15,7 +15,7 @@ import {
 } from "@/data/api/activeChats";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartTooltip,
-  ResponsiveContainer,
+  ResponsiveContainer, LabelList,
 } from "recharts";
 
 const REFRESH_INTERVAL_MS = 60_000;
@@ -177,56 +177,71 @@ export function LiveMonitoring() {
         </div>
       )}
 
-      {/* Summary cards */}
+      {/* Summary cards - Premium */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-4 pb-4">
+        {/* Total */}
+        <Card className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] to-white/[0.02] shadow-lg group">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-primary/10 to-transparent rounded-bl-full" />
+          <CardContent className="relative p-5">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary">
-                <Headphones size={20} />
+              <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary/10 text-primary shadow-[0_0_15px_hsl(var(--primary)/0.3)]">
+                <Headphones size={22} />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Em Atendimento</p>
-                <p className="text-2xl font-bold">{attendances.length}</p>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Em Atendimento</p>
+                <p className="text-3xl font-bold number-display tabular-nums tracking-tight">{attendances.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-4 pb-4">
+
+        {/* Queue */}
+        <Card className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] to-white/[0.02] shadow-lg group">
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-bl-full" />
+          <CardContent className="relative p-5">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                <Timer size={20} />
+              <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-amber-500/10 text-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.3)]">
+                <Timer size={22} />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Aguardando na Fila</p>
-                <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{inQueue.length}</p>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Aguardando na Fila</p>
+                <p className="text-3xl font-bold number-display tabular-nums tracking-tight text-amber-400">{inQueue.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-4 pb-4">
+
+        {/* With Agent */}
+        <Card className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] to-white/[0.02] shadow-lg group">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-emerald-500/10 to-transparent rounded-bl-full" />
+          <CardContent className="relative p-5">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                <Users size={20} />
+              <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-emerald-500/10 text-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+                <Users size={22} />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Com Agente</p>
-                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{withAgent.length}</p>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Com Agente</p>
+                <p className="text-3xl font-bold number-display tabular-nums tracking-tight text-emerald-400">{withAgent.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-4 pb-4">
+
+        {/* Channels */}
+        <Card className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] to-white/[0.02] shadow-lg group">
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-cyan-500/10 to-transparent rounded-bl-full" />
+          <CardContent className="relative p-5">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                <MessageSquare size={20} />
+              <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-cyan-500/10 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.3)]">
+                <MessageSquare size={22} />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Canais Ativos</p>
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Canais Ativos</p>
+                <p className="text-3xl font-bold number-display tabular-nums tracking-tight text-cyan-400">
                   {new Set(attendances.map((a) => a.channel)).size}
                 </p>
               </div>
@@ -235,84 +250,101 @@ export function LiveMonitoring() {
         </Card>
       </div>
 
-      {/* Loading state */}
+      {/* Loading state - Premium */}
       {loading && attendances.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 gap-3 text-muted-foreground">
-          <Loader2 size={32} className="animate-spin" />
-          <p className="text-sm">Carregando atendimentos...</p>
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="relative">
+            <div className="w-12 h-12 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+            <div className="absolute inset-0 w-12 h-12 rounded-full bg-primary/10 blur-xl" />
+          </div>
+          <p className="text-sm text-muted-foreground animate-pulse">Carregando atendimentos...</p>
         </div>
       )}
 
-      {/* Attendance list */}
+      {/* Attendance list - Premium */}
       {(!loading || attendances.length > 0) && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-              Atendimentos em Andamento ({filtered.length})
-            </CardTitle>
+        <Card className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.05] to-white/[0.02] shadow-lg">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/[0.03] via-transparent to-transparent pointer-events-none" />
+          <CardHeader className="relative pb-4 border-b border-white/[0.06]">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-3">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                </span>
+                Atendimentos em Andamento
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  {filtered.length}
+                </span>
+              </CardTitle>
+            </div>
           </CardHeader>
-          <CardContent className="p-0">
-            <ScrollArea className="h-[480px]">
-              <div className="divide-y">
+          <CardContent className="relative p-0">
+            <ScrollArea className="h-[480px] scrollbar-thin">
+              <div className="divide-y divide-white/[0.04]">
                 {filtered.length === 0 && (
-                  <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
-                    Nenhum atendimento encontrado
+                  <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
+                    <div className="w-12 h-12 rounded-full bg-white/[0.03] flex items-center justify-center">
+                      <User size={20} className="text-muted-foreground/50" />
+                    </div>
+                    <p className="text-sm">Nenhum atendimento encontrado</p>
                   </div>
                 )}
                 {filtered.map((a) => (
                   <div
                     key={a.id}
-                    className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 transition-colors"
+                    className="group flex items-center gap-4 px-5 py-4 hover:bg-white/[0.03] transition-all duration-200"
                   >
-                    {/* Status indicator */}
+                    {/* Status indicator with glow */}
                     <div className={cn(
-                      "w-1 h-12 rounded-full shrink-0",
-                      a.phase === "fila" ? "bg-amber-500" : "bg-emerald-500"
+                      "w-1 h-14 rounded-full shrink-0 shadow-[0_0_10px]",
+                      a.phase === "fila"
+                        ? "bg-amber-500 shadow-amber-500/30"
+                        : "bg-emerald-500 shadow-emerald-500/30"
                     )} />
 
                     {/* Contact info */}
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <User size={13} className="text-muted-foreground shrink-0" />
-                        <span className="text-sm font-medium truncate">{a.contactName}</span>
-                        <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", getChannelColor(a.channel))}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-semibold truncate">{a.contactName}</span>
+                        <Badge variant="outline" className={cn("text-[10px] px-2 py-0.5 font-medium border-white/10", getChannelColor(a.channel))}>
                           {a.channel}
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground/70">
                         <Phone size={11} className="shrink-0" />
                         <span>{a.contactPhone}</span>
                       </div>
                     </div>
 
                     {/* Destino: Agente ou Fila */}
-                    <div className="hidden sm:flex flex-col items-end gap-0.5 min-w-[160px]">
-                      <span className="text-xs text-muted-foreground font-mono">{a.dst}</span>
+                    <div className="hidden sm:flex flex-col items-end gap-1 min-w-[160px]">
+                      <span className="text-[10px] text-muted-foreground/50 font-mono uppercase tracking-wider">{a.phase === "agente" ? "Agente" : "Fila"}</span>
                       {a.phase === "agente" ? (
-                        <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                          <Headphones size={11} />
+                        <span className="text-xs font-medium text-emerald-400 flex items-center gap-1.5">
+                          <Headphones size={12} />
                           {a.dstName}
                         </span>
                       ) : (
-                        <span className="text-xs font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                          <Timer size={11} />
-                          {a.dstName || "Aguardando na fila"}
+                        <span className="text-xs font-medium text-amber-400 flex items-center gap-1.5">
+                          <Timer size={12} />
+                          {a.dstName || "Aguardando"}
                         </span>
                       )}
                     </div>
 
                     {/* Duration */}
                     <div className="flex flex-col items-end gap-0.5 shrink-0 min-w-[90px]">
-                      <div className="flex items-center gap-1 text-xs font-mono">
-                        <Clock size={11} className="text-muted-foreground" />
+                      <div className="flex items-center gap-1.5 text-xs font-mono">
+                        <Clock size={11} className={cn(
+                          a.durationSeconds > 1800 ? "text-red-400" :
+                          a.durationSeconds > 900 ? "text-amber-400" :
+                          "text-emerald-400"
+                        )} />
                         <span className={cn(
-                          "font-medium",
-                          a.durationSeconds > 1800 ? "text-red-600 dark:text-red-400" :
-                          a.durationSeconds > 900 ? "text-amber-600 dark:text-amber-400" :
+                          "font-semibold number-display",
+                          a.durationSeconds > 1800 ? "text-red-400" :
+                          a.durationSeconds > 900 ? "text-amber-400" :
                           "text-foreground"
                         )}>
                           {formatDuration(a.durationSeconds)}
@@ -327,28 +359,46 @@ export function LiveMonitoring() {
         </Card>
       )}
 
-      {/* Agent volume chart */}
+      {/* Agent volume chart - Premium */}
       {agentChartData.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Atendimentos por Agente (tempo real)</CardTitle>
+        <Card className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.05] to-white/[0.02] shadow-lg">
+          <div className="absolute inset-0 bg-gradient-to-br from-chart-3/5 via-transparent to-chart-1/5 pointer-events-none" />
+          <CardHeader className="relative pb-3">
+            <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-chart-3 shadow-[0_0_8px_hsl(var(--chart-3))]" />
+              Atendimentos por Agente
+            </CardTitle>
+            <p className="text-xs text-muted-foreground/70">Top agentes em tempo real</p>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={Math.max(180, agentChartData.length * 36)}>
-              <BarChart data={agentChartData} layout="vertical" margin={{ left: 10, right: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-                <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  tick={{ fontSize: 11 }}
-                  width={130}
-                />
+          <CardContent className="relative">
+            <ResponsiveContainer width="100%" height={Math.max(200, agentChartData.length * 40)}>
+              <BarChart data={agentChartData} layout="vertical" margin={{ left: 10, right: 20 }} barSize={24}>
+                <defs>
+                  <linearGradient id="agentGradient" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8} />
+                    <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={1} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.3)" horizontal={false} />
+                <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} width={130} axisLine={false} tickLine={false} />
                 <RechartTooltip
-                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                  cursor={{ fill: "rgba(255, 255, 255, 0.03)" }}
+                  contentStyle={{
+                    background: "rgba(17, 24, 39, 0.95)",
+                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    borderRadius: 12,
+                    fontSize: 12,
+                    backdropFilter: "blur(8px)",
+                    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)"
+                  }}
+                  labelStyle={{ color: "#9ca3af", fontSize: 11 }}
+                  itemStyle={{ color: "#8b5cf6", fontWeight: 500 }}
                   formatter={(value: number) => [`${value} atendimento${value !== 1 ? "s" : ""}`, "Total"]}
                 />
-                <Bar dataKey="total" name="Atendimentos" fill="hsl(var(--chart-1))" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="total" name="Atendimentos" fill="url(#agentGradient)" radius={[0, 6, 6, 0]}>
+                  <LabelList dataKey="total" position="right" className="fill-foreground text-[10px] font-medium" />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import type { DashboardState } from "@/hooks/useDashboard";
 import type { Channel } from "@/lib/types";
 import { MOCK_CHANNELS, MOCK_QUEUES, MOCK_AGENTS } from "@/data/mock/seed";
-import { Input } from "@/components/ui/input";
+import { PeriodFilter } from "@/components/filters/PeriodFilter";
 
 const CHANNELS: Channel[] = MOCK_CHANNELS;
 
@@ -23,25 +23,15 @@ export function FilterBar({ dashboard, compact }: FilterBarProps) {
 
   return (
     <div className={compact ? "flex items-center gap-2 flex-wrap" : "flex flex-col gap-3"}>
-      {/* Date range */}
-      <div className={compact ? "flex items-center gap-1" : "flex flex-col gap-1"}>
-        {!compact && <label className="text-xs font-medium text-muted-foreground">Período (fechamento)</label>}
-        <div className="flex items-center gap-1">
-          <Input
-            type="date"
-            value={filters.dateFrom}
-            onChange={(e) => updateFilter("dateFrom", e.target.value)}
-            className="h-8 text-xs w-36"
-          />
-          <span className="text-muted-foreground text-xs">→</span>
-          <Input
-            type="date"
-            value={filters.dateTo}
-            onChange={(e) => updateFilter("dateTo", e.target.value)}
-            className="h-8 text-xs w-36"
-          />
-        </div>
-      </div>
+      {/* Period filter */}
+      <PeriodFilter
+        dateFrom={filters.dateFrom}
+        dateTo={filters.dateTo}
+        onChange={(from, to) => {
+          updateFilter("dateFrom", from);
+          updateFilter("dateTo", to);
+        }}
+      />
 
       {/* Channel */}
       <div className={compact ? "" : "flex flex-col gap-1"}>

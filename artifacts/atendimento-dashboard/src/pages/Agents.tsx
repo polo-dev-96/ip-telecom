@@ -2,7 +2,7 @@ import type { DashboardState } from "@/hooks/useDashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartTooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartTooltip, ResponsiveContainer, LabelList } from "recharts";
 import { fmtNumber } from "@/lib/utils/formatters";
 
 interface AgentsProps {
@@ -32,7 +32,9 @@ export function Agents({ dashboard }: AgentsProps) {
               <XAxis type="number" tick={{ fontSize: 11 }} />
               <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={70} />
               <RechartTooltip {...tooltip} />
-              <Bar dataKey="total" name="Atendimentos" fill="hsl(var(--chart-1))" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="total" name="Atendimentos" fill="hsl(var(--chart-1))" radius={[0, 4, 4, 0]}>
+                <LabelList dataKey="total" position="right" className="fill-foreground text-[10px] font-medium" />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
