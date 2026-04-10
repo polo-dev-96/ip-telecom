@@ -125,7 +125,7 @@ export function Overview({ dashboard }: OverviewProps) {
           <div className="absolute inset-0 bg-gradient-to-br from-chart-3/5 via-transparent to-chart-5/5 pointer-events-none" />
           <CardHeader className="relative pb-3">
             <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-chart-3 shadow-[0_0_8px_hsl(var(--chart-3))]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
               Atendimentos Finalizados por Fila
             </CardTitle>
             <p className="text-xs text-foreground/70 font-medium">Top 10 filas por volume de atendimentos</p>
@@ -147,15 +147,15 @@ export function Overview({ dashboard }: OverviewProps) {
                     boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)"
                   }}
                   labelStyle={{ color: "#9ca3af", fontSize: 11 }}
-                  itemStyle={{ color: "#a855f7", fontWeight: 500 }}
+                  itemStyle={{ color: "#ef4444", fontWeight: 500 }}
                 />
-                <Bar dataKey="total" name="Total" fill="url(#queueGradient)" radius={[0, 6, 6, 0]}>
+                <Bar dataKey="total" name="Atendimentos" fill="url(#queueGradient)" radius={[0, 6, 6, 0]}>
                   <LabelList dataKey="total" position="right" className="fill-foreground text-[10px] font-medium" />
                 </Bar>
                 <defs>
                   <linearGradient id="queueGradient" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor={CHART_COLORS.tertiary} stopOpacity={0.8} />
-                    <stop offset="100%" stopColor={CHART_COLORS.tertiary} stopOpacity={1} />
+                    <stop offset="0%" stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
+                    <stop offset="100%" stopColor="hsl(var(--destructive))" stopOpacity={1} />
                   </linearGradient>
                 </defs>
               </BarChart>

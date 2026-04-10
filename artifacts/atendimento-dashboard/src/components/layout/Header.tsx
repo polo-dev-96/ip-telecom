@@ -12,7 +12,7 @@ interface HeaderProps {
   dashboard: DashboardState;
 }
 
-const HIDE_FILTERS_ROUTES = ["/acompanhamento"];
+const HIDE_FILTERS_ROUTES = ["/acompanhamento", "/ramais"];
 
 export function Header({ dashboard }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
