@@ -34,7 +34,7 @@ export function Automation({ dashboard }: AutomationProps) {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Automação</h1>
-        <p className="text-sm text-muted-foreground mt-1">Indicadores de automação, handoff e transferência — atendimentos finalizados</p>
+        <p className="text-sm text-foreground/80 font-medium mt-1">Indicadores de automação, handoff e transferência — atendimentos finalizados</p>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -86,8 +86,8 @@ export function Automation({ dashboard }: AutomationProps) {
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={handoffData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} />
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} />
+                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} />
                 <RechartTooltip {...tooltip} />
                 <Bar dataKey="avg" name="Seg" fill="hsl(var(--chart-4))" radius={[4, 4, 0, 0]} />
               </BarChart>

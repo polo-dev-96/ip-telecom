@@ -97,13 +97,13 @@ export function MetricCard({
           <div className="min-w-0 flex-1">
             {/* Title with tooltip */}
             <div className="flex items-center gap-1.5 mb-2">
-              <p className="text-xs font-medium text-muted-foreground/80 tracking-wide uppercase truncate">
+              <p className="text-xs font-bold text-foreground tracking-wide uppercase truncate">
                 {title}
               </p>
               {tooltip && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <HelpCircle size={12} className="text-muted-foreground/50 shrink-0 cursor-help hover:text-muted-foreground transition-colors" />
+                    <HelpCircle size={12} className="text-foreground/60 shrink-0 cursor-help hover:text-foreground transition-colors" />
                   </TooltipTrigger>
                   <TooltipContent
                     side="top"
@@ -128,7 +128,7 @@ export function MetricCard({
 
             {/* Subtitle */}
             {subtitle && (
-              <p className="text-xs text-muted-foreground/70 mt-1.5 truncate">
+              <p className="text-xs text-foreground/80 font-medium mt-1.5 truncate">
                 {subtitle}
               </p>
             )}

@@ -189,7 +189,7 @@ export function LiveMonitoring() {
                 <Headphones size={22} />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Em Atendimento</p>
+                <p className="text-[10px] uppercase tracking-wider text-foreground/90 font-bold">Em Atendimento</p>
                 <p className="text-3xl font-bold number-display tabular-nums tracking-tight">{attendances.length}</p>
               </div>
             </div>
@@ -206,7 +206,7 @@ export function LiveMonitoring() {
                 <Timer size={22} />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Aguardando na Fila</p>
+                <p className="text-[10px] uppercase tracking-wider text-foreground/90 font-bold">Aguardando na Fila</p>
                 <p className="text-3xl font-bold number-display tabular-nums tracking-tight text-amber-400">{inQueue.length}</p>
               </div>
             </div>
@@ -223,7 +223,7 @@ export function LiveMonitoring() {
                 <Users size={22} />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Com Agente</p>
+                <p className="text-[10px] uppercase tracking-wider text-foreground/90 font-bold">Com Agente</p>
                 <p className="text-3xl font-bold number-display tabular-nums tracking-tight text-emerald-400">{withAgent.length}</p>
               </div>
             </div>
@@ -240,7 +240,7 @@ export function LiveMonitoring() {
                 <MessageSquare size={22} />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Canais Ativos</p>
+                <p className="text-[10px] uppercase tracking-wider text-foreground/90 font-bold">Canais Ativos</p>
                 <p className="text-3xl font-bold number-display tabular-nums tracking-tight text-cyan-400">
                   {new Set(attendances.map((a) => a.channel)).size}
                 </p>
@@ -362,10 +362,10 @@ export function LiveMonitoring() {
       {/* Agent volume chart - Premium */}
       {agentChartData.length > 0 && (
         <Card className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.05] to-white/[0.02] shadow-lg">
-          <div className="absolute inset-0 bg-gradient-to-br from-chart-3/5 via-transparent to-chart-1/5 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-400/5 via-transparent to-slate-500/5 pointer-events-none" />
           <CardHeader className="relative pb-3">
             <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-chart-3 shadow-[0_0_8px_hsl(var(--chart-3))]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shadow-[0_0_8px_rgba(148,163,184,0.5)]" />
               Atendimentos por Agente
             </CardTitle>
             <p className="text-xs text-muted-foreground/70">Top agentes em tempo real</p>
@@ -374,14 +374,14 @@ export function LiveMonitoring() {
             <ResponsiveContainer width="100%" height={Math.max(200, agentChartData.length * 40)}>
               <BarChart data={agentChartData} layout="vertical" margin={{ left: 10, right: 20 }} barSize={24}>
                 <defs>
-                  <linearGradient id="agentGradient" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8} />
-                    <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={1} />
+                  <linearGradient id="agentGradientNeutral" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.6} />
+                    <stop offset="100%" stopColor="hsl(var(--foreground))" stopOpacity={0.9} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.3)" horizontal={false} />
-                <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} width={130} axisLine={false} tickLine={false} />
+                <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12, fill: "hsl(var(--foreground))", fontWeight: 500 }} axisLine={false} tickLine={false} />
+                <YAxis dataKey="name" type="category" tick={{ fontSize: 12, fill: "hsl(var(--foreground))", fontWeight: 600 }} width={130} axisLine={false} tickLine={false} />
                 <RechartTooltip
                   cursor={{ fill: "rgba(255, 255, 255, 0.03)" }}
                   contentStyle={{
@@ -393,10 +393,10 @@ export function LiveMonitoring() {
                     boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)"
                   }}
                   labelStyle={{ color: "#9ca3af", fontSize: 11 }}
-                  itemStyle={{ color: "#8b5cf6", fontWeight: 500 }}
+                  itemStyle={{ color: "hsl(var(--muted-foreground))", fontWeight: 500 }}
                   formatter={(value: number) => [`${value} atendimento${value !== 1 ? "s" : ""}`, "Total"]}
                 />
-                <Bar dataKey="total" name="Atendimentos" fill="url(#agentGradient)" radius={[0, 6, 6, 0]}>
+                <Bar dataKey="total" name="Atendimentos" fill="url(#agentGradientNeutral)" radius={[0, 6, 6, 0]}>
                   <LabelList dataKey="total" position="right" className="fill-foreground text-[10px] font-medium" />
                 </Bar>
               </BarChart>

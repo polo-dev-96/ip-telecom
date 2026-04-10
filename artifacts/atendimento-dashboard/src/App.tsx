@@ -9,6 +9,7 @@ import { Attendances } from "@/pages/Attendances";
 import { Channels } from "@/pages/Channels";
 import { Agents } from "@/pages/Agents";
 import { LiveMonitoring } from "@/pages/LiveMonitoring";
+import { Ramais } from "@/pages/Ramais";
 import { AttendanceDetail } from "@/pages/AttendanceDetail";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -30,6 +31,7 @@ function DashboardLayout() {
               <Route path="/canais" component={() => <Channels dashboard={dashboard} />} />
               <Route path="/agentes" component={() => <Agents dashboard={dashboard} />} />
               <Route path="/acompanhamento" component={() => <LiveMonitoring />} />
+              <Route path="/ramais" component={() => <Ramais />} />
               <Route path="/atendimento/:id" component={AttendanceDetail} />
               <Route>
                 <div className="flex flex-col items-center justify-center py-20 gap-2">

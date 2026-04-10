@@ -91,7 +91,7 @@ export function Attendances({ dashboard }: AttendancesProps) {
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Atendimentos Finalizados</h1>
-        <p className="text-sm text-muted-foreground mt-1">{sorted.length} registros encontrados</p>
+        <p className="text-sm text-foreground/80 font-medium mt-1">{sorted.length} registros encontrados</p>
       </div>
 
       <Card>
@@ -154,14 +154,14 @@ export function Attendances({ dashboard }: AttendancesProps) {
               <TableBody>
                 {paginated.map((a) => (
                   <TableRow key={a.id} className="text-xs">
-                    <TableCell className="font-mono text-xs whitespace-nowrap">{a.protocol}</TableCell>
+                    <TableCell className="font-mono text-xs whitespace-nowrap text-foreground">{a.protocol}</TableCell>
                     <TableCell><ChannelBadge channel={a.channel} /></TableCell>
-                    <TableCell className="text-muted-foreground">{a.customerNameMasked}</TableCell>
-                    <TableCell className="whitespace-nowrap">{a.agentName ?? <span className="text-muted-foreground italic">Bot</span>}</TableCell>
-                    <TableCell className="whitespace-nowrap text-muted-foreground">{fmtDateTime(a.closedAt)}</TableCell>
+                    <TableCell className="text-foreground/90">{a.customerNameMasked}</TableCell>
+                    <TableCell className="whitespace-nowrap text-foreground">{a.agentName ?? <span className="text-foreground/70 italic">Bot</span>}</TableCell>
+                    <TableCell className="whitespace-nowrap text-foreground/90">{fmtDateTime(a.closedAt)}</TableCell>
                     <TableCell className="whitespace-nowrap">{fmtMinutes(a.ttrMinutes)}</TableCell>
                     <TableCell className="whitespace-nowrap">{fmtMinutes(Math.max(a.ttrMinutes - (a.frtMinutes ?? 0), 0))}</TableCell>
-                    <TableCell className="whitespace-nowrap">{a.frtMinutes !== null ? fmtMinutes(a.frtMinutes) : <span className="text-muted-foreground italic">—</span>}</TableCell>
+                    <TableCell className="whitespace-nowrap text-foreground">{a.frtMinutes !== null ? fmtMinutes(a.frtMinutes) : <span className="text-foreground/70 italic">—</span>}</TableCell>
                     <TableCell>
                       <Link to={`/atendimento/${a.id}`}>
                         <Button variant="ghost" size="icon" className="h-7 w-7">
@@ -173,7 +173,7 @@ export function Attendances({ dashboard }: AttendancesProps) {
                 ))}
                 {paginated.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-10 text-muted-foreground text-sm">
+                    <TableCell colSpan={8} className="text-center py-10 text-foreground/80 text-sm font-medium">
                       Nenhum atendimento encontrado
                     </TableCell>
                   </TableRow>
@@ -184,7 +184,7 @@ export function Attendances({ dashboard }: AttendancesProps) {
 
           {/* Pagination */}
           <div className="flex items-center justify-between px-4 py-3 border-t">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-foreground/80 font-medium">
               {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, sorted.length)} de {sorted.length}
             </p>
             <div className="flex items-center gap-1">

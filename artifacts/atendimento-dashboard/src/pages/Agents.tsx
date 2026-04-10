@@ -29,8 +29,8 @@ export function Agents({ dashboard }: AgentsProps) {
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={top10.map((a) => ({ name: a.agentName.split(" ")[0], total: a.total }))} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis type="number" tick={{ fontSize: 11 }} />
-              <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={70} />
+              <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} />
+              <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 600 }} width={70} />
               <RechartTooltip {...tooltip} />
               <Bar dataKey="total" name="Atendimentos" fill="hsl(var(--chart-1))" radius={[0, 4, 4, 0]}>
                 <LabelList dataKey="total" position="right" className="fill-foreground text-[10px] font-medium" />
@@ -48,16 +48,16 @@ export function Agents({ dashboard }: AgentsProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>#</TableHead>
-                  <TableHead>Agente</TableHead>
-                  <TableHead>Equipe</TableHead>
-                  <TableHead>Volume</TableHead>
+                  <TableHead className="text-foreground font-bold">#</TableHead>
+                  <TableHead className="text-foreground font-bold">Agente</TableHead>
+                  <TableHead className="text-foreground font-bold">Equipe</TableHead>
+                  <TableHead className="text-foreground font-bold">Volume</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {agentMetrics.map((a, i) => (
                   <TableRow key={a.agentId} className="text-xs">
-                    <TableCell className="text-muted-foreground font-mono">{i + 1}</TableCell>
+                    <TableCell className="text-foreground font-mono font-semibold">{i + 1}</TableCell>
                     <TableCell className="font-medium whitespace-nowrap">{a.agentName}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-xs">{a.team}</Badge>

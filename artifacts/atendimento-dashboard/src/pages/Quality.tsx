@@ -132,16 +132,16 @@ export function Quality({ dashboard }: QualityProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>#</TableHead>
-                <TableHead>Agente</TableHead>
-                <TableHead>CSAT</TableHead>
-                <TableHead>Avaliação</TableHead>
+                <TableHead className="text-foreground font-bold">#</TableHead>
+                <TableHead className="text-foreground font-bold">Agente</TableHead>
+                <TableHead className="text-foreground font-bold">CSAT</TableHead>
+                <TableHead className="text-foreground font-bold">Avaliação</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {q.csatByAgent.map((a, i) => (
                 <TableRow key={a.agentName} className="text-xs">
-                  <TableCell className="font-mono text-muted-foreground">{i + 1}</TableCell>
+                  <TableCell className="font-mono text-foreground font-semibold">{i + 1}</TableCell>
                   <TableCell className="font-medium">{a.agentName}</TableCell>
                   <TableCell>
                     <span className={a.csatPct >= 80 ? "text-emerald-600 dark:text-emerald-400 font-semibold" : a.csatPct >= 60 ? "text-amber-600 dark:text-amber-400 font-semibold" : "text-red-600 dark:text-red-400 font-semibold"}>

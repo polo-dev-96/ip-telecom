@@ -18,22 +18,17 @@ export function NavLink({ to, label, icon, collapsed, highlight }: NavLinkProps)
     <Link
       to={to}
       className={cn(
-        "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-        "hover:bg-white/[0.06] hover:text-foreground",
+        "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200",
+        "hover:bg-white/[0.12] hover:text-white",
         collapsed ? "justify-center" : "",
         isActive
-          ? "text-foreground"
-          : "text-muted-foreground/70 hover:text-foreground"
+          ? "text-white bg-white/[0.15] shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+          : "text-white/95 hover:text-white"
       )}
     >
       {/* Active indicator */}
       {isActive && (
-        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full shadow-[0_0_10px_hsl(var(--primary))]" />
-      )}
-
-      {/* Background glow for active/highlight */}
-      {(isActive || highlight) && (
-        <span className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
       )}
 
       {/* Icon with enhanced styling */}
@@ -41,10 +36,10 @@ export function NavLink({ to, label, icon, collapsed, highlight }: NavLinkProps)
         className={cn(
           "relative shrink-0 transition-all duration-200",
           isActive
-            ? "text-primary"
+            ? "text-white drop-shadow-[0_0_4px_rgba(255,255,255,0.5)]"
             : highlight
-            ? "text-amber-400"
-            : "text-muted-foreground/60 group-hover:text-foreground"
+            ? "text-amber-300"
+            : "text-white/90 group-hover:text-white"
         )}
       >
         {icon}
@@ -52,10 +47,10 @@ export function NavLink({ to, label, icon, collapsed, highlight }: NavLinkProps)
 
       {/* Label */}
       {!collapsed && (
-        <span className="relative truncate">
+        <span className="relative truncate text-white font-bold tracking-wide">
           {label}
           {highlight && (
-            <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-400/30 text-amber-200 border border-amber-400/40 shadow-[0_0_8px_rgba(251,191,36,0.2)]">
               LIVE
             </span>
           )}
@@ -70,12 +65,12 @@ export function NavLink({ to, label, icon, collapsed, highlight }: NavLinkProps)
         <TooltipTrigger asChild>{inner}</TooltipTrigger>
         <TooltipContent
           side="right"
-          className="bg-popover/95 backdrop-blur-sm border-white/10"
+          className="bg-[#1E3E88] border-white/30 text-white font-semibold"
         >
           <span className="flex items-center gap-2">
             {label}
             {highlight && (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-amber-400/20 text-amber-300 border border-amber-400/30">
                 LIVE
               </span>
             )}

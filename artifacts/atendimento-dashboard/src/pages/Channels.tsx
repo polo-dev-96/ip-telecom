@@ -42,8 +42,8 @@ export function Channels({ dashboard }: ChannelsProps) {
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={volumeData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} />
+                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} />
                 <RechartTooltip {...tooltip} />
                 <Bar dataKey="total" name="Atendimentos" fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]}>
                   <LabelList dataKey="total" position="top" className="fill-foreground text-[10px] font-medium" />
@@ -59,8 +59,8 @@ export function Channels({ dashboard }: ChannelsProps) {
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={slaData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} />
+                <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} />
                 <RechartTooltip {...tooltip} />
                 <Bar dataKey="sla" name="SLA %" fill={CHART_COLORS[1]} radius={[4, 4, 0, 0]}>
                   <LabelList dataKey="sla" position="top" className="fill-foreground text-[10px] font-medium" formatter={(v: number) => `${v}%`} />
@@ -79,9 +79,9 @@ export function Channels({ dashboard }: ChannelsProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>#</TableHead>
-                <TableHead>Canal</TableHead>
-                <TableHead>Total</TableHead>
+                <TableHead className="text-foreground font-bold">#</TableHead>
+                <TableHead className="text-foreground font-bold">Canal</TableHead>
+                <TableHead className="text-foreground font-bold">Total</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
