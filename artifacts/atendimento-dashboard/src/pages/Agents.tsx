@@ -12,7 +12,8 @@ interface AgentsProps {
 export function Agents({ dashboard }: AgentsProps) {
   const { agentMetrics } = dashboard;
 
-  const top10 = agentMetrics.slice(0, 10);
+  const chartData = agentMetrics.map((a) => ({ name: a.agentName, total: a.total }));
+  const chartHeight = Math.max(300, chartData.length * 40);
 
   const tooltip = { contentStyle: { background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 } };
 
@@ -24,13 +25,13 @@ export function Agents({ dashboard }: AgentsProps) {
       </div>
 
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Top 10 por Volume</CardTitle></CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Volume por Agente</CardTitle></CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={top10.map((a) => ({ name: a.agentName.split(" ")[0], total: a.total }))} layout="vertical">
+          <ResponsiveContainer width="100%" height={chartHeight}>
+            <BarChart data={chartData} layout="vertical" barSize={24} margin={{ top: 5, right: 40, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} />
-              <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 600 }} width={70} />
+              <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 600 }} width={130} />
               <RechartTooltip {...tooltip} />
               <Bar dataKey="total" name="Atendimentos" fill="hsl(var(--chart-1))" radius={[0, 4, 4, 0]}>
                 <LabelList dataKey="total" position="right" className="fill-foreground text-[10px] font-medium" />

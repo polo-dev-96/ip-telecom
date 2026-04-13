@@ -1,16 +1,38 @@
 import { useParams, Link } from "wouter";
 import type { FC } from "react";
-import { dataProvider } from "@/data/adapters/mockAdapter";
+import { useQuery } from "@tanstack/react-query";
+import type { ClosedAttendance } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Clock, User, MessageSquare, CheckCircle2, Star, Bot, Tag } from "lucide-react";
+import { ArrowLeft, Clock, User, MessageSquare, CheckCircle2, Star, Bot, Tag, Loader2 } from "lucide-react";
 import { fmtDateTime, fmtMinutes, fmtSeconds } from "@/lib/utils/formatters";
 import { SlaBadge, CsatBadge, ChannelBadge, ResolutionBadge, SentimentBadge, StatusBadge } from "@/components/dashboard/StatusBadge";
 
+async function fetchAttendanceById(id: string): Promise<ClosedAttendance | null> {
+  const res = await fetch(`/api/attendances?id=${id}`);
+  if (!res.ok) return null;
+  const json = await res.json();
+  const data = json.data as ClosedAttendance[];
+  return data.find((a) => a.id === id) ?? null;
+}
+
 export function AttendanceDetail() {
   const { id } = useParams<{ id: string }>();
-  const attendance = dataProvider.getAttendanceById(id ?? "");
+  const { data: attendance, isLoading } = useQuery({
+    queryKey: ["attendance", id],
+    queryFn: () => fetchAttendanceById(id ?? ""),
+    enabled: !!id,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        <p className="text-muted-foreground">Carregando...</p>
+      </div>
+    );
+  }
 
   if (!attendance) {
     return (
@@ -87,8 +109,8 @@ export function AttendanceDetail() {
           <CardContent className="space-y-3 text-sm">
             <Row label="Abertura" value={fmtDateTime(a.openedAt)} />
             <Row label="Fechamento" value={fmtDateTime(a.closedAt)} />
-            <Row label="TMR" value={<span className="font-semibold">{fmtMinutes(a.ttrMinutes)}</span>} />
-            {a.frtMinutes && <Row label="TMP (1ª Resp.)" value={fmtMinutes(a.frtMinutes)} />}
+            <Row label="TMA" value={<span className="font-semibold">{fmtMinutes(Math.max(a.ttrMinutes - (a.frtMinutes ?? 0), 0))}</span>} />
+            {a.frtMinutes && <Row label="TME" value={fmtMinutes(a.frtMinutes)} />}
             {a.handoffSeconds && <Row label="Handoff Bot→Humano" value={fmtSeconds(a.handoffSeconds)} />}
             <Row label="SLA Alvo" value={fmtMinutes(a.slaResolutionTargetMinutes)} />
             <Row label="SLA" value={<SlaBadge within={a.withinResolutionSla} />} />

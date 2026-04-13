@@ -1,4 +1,4 @@
-export type Channel = "WhatsApp" | "Instagram" | "Webchat" | "Email" | "Telegram";
+export type Channel = "WhatsApp" | "Instagram" | "Webchat" | "Email" | "Telegram" | "Facebook";
 export type AttendanceStatus = "finalizado" | "fechado" | "resolvido";
 export type ResolutionType = "humano" | "bot" | "hibrido";
 export type Sentiment = "positivo" | "neutro" | "negativo";

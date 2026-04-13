@@ -66,17 +66,18 @@ export function calcComplianceRate(attendances: ClosedAttendance[]): number {
 }
 
 function calcTma(attendances: ClosedAttendance[]): number {
-  const vals = attendances.map((a) => {
-    const frt = a.frtMinutes ?? 0;
-    return Math.max(a.ttrMinutes - frt, 0);
-  });
+  // TMA = tempo desde primeira resposta até fechamento = TTR - FRT (média)
+  // Filtra: apenas atendimentos com FRT válido (> 1 min, exclui 00:00:00 e registros inválidos)
+  const withValidAgent = attendances.filter((a) => a.frtMinutes !== null && a.frtMinutes > 1);
+  const vals = withValidAgent.map((a) => Math.max(0, a.ttrMinutes - (a.frtMinutes ?? 0)));
   return calcMean(vals);
 }
 
 function calcTme(attendances: ClosedAttendance[]): number {
-  const vals = attendances
-    .filter((a) => a.frtMinutes !== null)
-    .map((a) => a.frtMinutes as number);
+  // TME = tempo desde abertura até primeira resposta = FRT (média)
+  // Filtra: apenas atendimentos com FRT válido (> 1 min, exclui 00:00:00 e registros inválidos)
+  const withValidAgent = attendances.filter((a) => a.frtMinutes !== null && a.frtMinutes > 1);
+  const vals = withValidAgent.map((a) => a.frtMinutes as number);
   return calcMean(vals);
 }
 

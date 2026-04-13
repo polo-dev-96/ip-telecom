@@ -60,6 +60,10 @@ const SHORTCUTS: Shortcut[] = [
     },
   },
   {
+    label: "Últimos 3 meses",
+    getValue: () => ({ from: startOfMonth(subMonths(new Date(), 2)), to: new Date() }),
+  },
+  {
     label: "Este ano",
     getValue: () => ({ from: startOfYear(new Date()), to: endOfYear(new Date()) }),
   },
@@ -172,10 +176,10 @@ export function PeriodFilter({ dateFrom, dateTo, onChange }: PeriodFilterProps) 
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-auto p-0 min-w-[800px]" align="start">
+      <PopoverContent className="w-auto p-0" align="start">
         <div className="flex">
           {/* Shortcuts sidebar */}
-          <div className="w-56 border-r border-border/50 bg-muted/30 p-5 space-y-2 dark:bg-white/[0.02] dark:border-white/[0.06]">
+          <div className="w-48 border-r border-border/50 bg-muted/30 p-3 space-y-1 dark:bg-white/[0.02] dark:border-white/[0.06]">
             <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-bold mb-5 px-1">
               Atalhos
             </p>
@@ -196,9 +200,9 @@ export function PeriodFilter({ dateFrom, dateTo, onChange }: PeriodFilterProps) 
           </div>
 
           {/* Calendar section */}
-          <div className="p-8">
+          <div className="p-4">
             {/* Selected period header */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-bold mb-2">
                   Período selecionado
@@ -226,22 +230,9 @@ export function PeriodFilter({ dateFrom, dateTo, onChange }: PeriodFilterProps) 
             </div>
 
             {/* Double calendar */}
-            {/* Double calendar with range selection */}
-            <div className="flex gap-10">
+            <div className="flex gap-4">
               {/* Left calendar */}
-              <div className="space-y-4 min-w-[280px]">
-                <div className="flex items-center justify-between px-2">
-                  <button
-                    onClick={() => setMonthLeft((m) => addMonths(m, -1))}
-                    className="p-2 rounded-lg hover:bg-accent dark:hover:bg-white/[0.06] transition-colors"
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
-                  <span className="text-sm font-bold capitalize">
-                    {format(monthLeft, "MMMM yyyy", { locale: ptBR })}
-                  </span>
-                  <div className="w-8" />
-                </div>
+              <div className="min-w-[260px]">
                 <Calendar
                   mode="range"
                   month={monthLeft}
@@ -250,28 +241,16 @@ export function PeriodFilter({ dateFrom, dateTo, onChange }: PeriodFilterProps) 
                   onSelect={handleRangeSelect}
                   locale={ptBR}
                   numberOfMonths={1}
-                  className="border-0 [&_.rdp-day]:w-10 [&_.rdp-day]:h-10 [&_.rdp-cell]:p-1"
+                  className="border-0 [&_.rdp-day]:w-9 [&_.rdp-day]:h-9 [&_.rdp-cell]:p-0.5"
                   showOutsideDays={false}
                 />
               </div>
 
               {/* Divider */}
-              <div className="w-px bg-border/50 dark:bg-white/[0.06] self-stretch my-4" />
+              <div className="w-px bg-border/50 dark:bg-white/[0.06] self-stretch my-2" />
 
               {/* Right calendar */}
-              <div className="space-y-4 min-w-[280px]">
-                <div className="flex items-center justify-between px-2">
-                  <div className="w-8" />
-                  <span className="text-sm font-bold capitalize">
-                    {format(monthRight, "MMMM yyyy", { locale: ptBR })}
-                  </span>
-                  <button
-                    onClick={() => setMonthRight((m) => addMonths(m, 1))}
-                    className="p-2 rounded-lg hover:bg-accent dark:hover:bg-white/[0.06] transition-colors"
-                  >
-                    <ChevronRight size={20} />
-                  </button>
-                </div>
+              <div className="min-w-[260px]">
                 <Calendar
                   mode="range"
                   month={monthRight}
@@ -280,14 +259,14 @@ export function PeriodFilter({ dateFrom, dateTo, onChange }: PeriodFilterProps) 
                   onSelect={handleRangeSelect}
                   locale={ptBR}
                   numberOfMonths={1}
-                  className="border-0 [&_.rdp-day]:w-10 [&_.rdp-day]:h-10 [&_.rdp-cell]:p-1"
+                  className="border-0 [&_.rdp-day]:w-9 [&_.rdp-day]:h-9 [&_.rdp-cell]:p-0.5"
                   showOutsideDays={false}
                 />
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-border/50 dark:border-white/[0.06]">
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50 dark:border-white/[0.06]">
               <Button
                 variant="ghost"
                 size="sm"
@@ -300,7 +279,7 @@ export function PeriodFilter({ dateFrom, dateTo, onChange }: PeriodFilterProps) 
               <Button
                 size="sm"
                 onClick={handleApply}
-                disabled={!range.from || !range.to}
+                disabled={!range?.from || !range?.to}
                 className="text-sm px-5 py-2.5 h-10"
               >
                 <Check size={18} className="mr-2" />

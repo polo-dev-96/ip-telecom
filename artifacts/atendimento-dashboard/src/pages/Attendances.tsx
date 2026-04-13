@@ -68,13 +68,13 @@ export function Attendances({ dashboard }: AttendancesProps) {
   }
 
   function exportCsv() {
-    const headers = ["Protocolo","Canal","Cliente","Agente","Fechamento","TMR (min)","TMA (min)","TME (min)"];
+    const headers = ["Protocolo","Canal","Cliente","Agente","Fechamento","TMA (min)","TME (min)"];
     const rows = sorted.map((a) => {
       const frt = a.frtMinutes ?? 0;
       const tma = Math.max(a.ttrMinutes - frt, 0);
       return [
         a.protocol, a.channel, a.customerNameMasked, a.agentName ?? "Bot",
-        a.closedAt, a.ttrMinutes, Math.round(tma), a.frtMinutes ?? "N/A"
+        a.closedAt, Math.round(tma), a.frtMinutes ?? "N/A"
       ];
     });
     const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
@@ -134,11 +134,6 @@ export function Attendances({ dashboard }: AttendancesProps) {
                     </button>
                   </TableHead>
                   <TableHead className="whitespace-nowrap">
-                    <button onClick={() => toggleSort("ttrMinutes")} className="flex items-center gap-1 hover:text-foreground">
-                      TMR <SortIcon k="ttrMinutes" />
-                    </button>
-                  </TableHead>
-                  <TableHead className="whitespace-nowrap">
                     <button onClick={() => toggleSort("frtMinutes")} className="flex items-center gap-1 hover:text-foreground">
                       TMA <SortIcon k="frtMinutes" />
                     </button>
@@ -159,7 +154,6 @@ export function Attendances({ dashboard }: AttendancesProps) {
                     <TableCell className="text-foreground/90">{a.customerNameMasked}</TableCell>
                     <TableCell className="whitespace-nowrap text-foreground">{a.agentName ?? <span className="text-foreground/70 italic">Bot</span>}</TableCell>
                     <TableCell className="whitespace-nowrap text-foreground/90">{fmtDateTime(a.closedAt)}</TableCell>
-                    <TableCell className="whitespace-nowrap">{fmtMinutes(a.ttrMinutes)}</TableCell>
                     <TableCell className="whitespace-nowrap">{fmtMinutes(Math.max(a.ttrMinutes - (a.frtMinutes ?? 0), 0))}</TableCell>
                     <TableCell className="whitespace-nowrap text-foreground">{a.frtMinutes !== null ? fmtMinutes(a.frtMinutes) : <span className="text-foreground/70 italic">—</span>}</TableCell>
                     <TableCell>

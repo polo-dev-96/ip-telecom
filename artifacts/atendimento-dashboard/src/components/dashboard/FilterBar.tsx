@@ -3,10 +3,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { X } from "lucide-react";
 import type { DashboardState } from "@/hooks/useDashboard";
 import type { Channel } from "@/lib/types";
-import { MOCK_CHANNELS, MOCK_QUEUES, MOCK_AGENTS } from "@/data/mock/seed";
 import { PeriodFilter } from "@/components/filters/PeriodFilter";
+import { useQuery } from "@tanstack/react-query";
 
-const CHANNELS: Channel[] = MOCK_CHANNELS;
+interface FilterOption {
+  value: string;
+  label: string;
+}
+
+interface FiltersResponse {
+  channels: FilterOption[];
+  queues: FilterOption[];
+  agents: FilterOption[];
+}
+
+async function fetchFilterOptions(): Promise<FiltersResponse> {
+  const res = await fetch("/api/filters");
+  if (!res.ok) return { channels: [], queues: [], agents: [] };
+  return res.json();
+}
 
 interface FilterBarProps {
   dashboard: DashboardState;
@@ -15,6 +30,15 @@ interface FilterBarProps {
 
 export function FilterBar({ dashboard, compact }: FilterBarProps) {
   const { filters, updateFilter, resetFilters } = dashboard;
+  const { data: filterOptions } = useQuery({
+    queryKey: ["filter-options"],
+    queryFn: fetchFilterOptions,
+    staleTime: 300_000,
+  });
+
+  const channels = filterOptions?.channels ?? [];
+  const queues = filterOptions?.queues ?? [];
+  const agents = filterOptions?.agents ?? [];
 
   const hasActiveFilters =
     filters.channels.length > 0 ||
@@ -28,8 +52,7 @@ export function FilterBar({ dashboard, compact }: FilterBarProps) {
         dateFrom={filters.dateFrom}
         dateTo={filters.dateTo}
         onChange={(from, to) => {
-          updateFilter("dateFrom", from);
-          updateFilter("dateTo", to);
+          dashboard.setFilters((prev) => ({ ...prev, dateFrom: from, dateTo: to }));
         }}
       />
 
@@ -45,8 +68,8 @@ export function FilterBar({ dashboard, compact }: FilterBarProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="_all">Todos os canais</SelectItem>
-            {CHANNELS.map((c) => (
-              <SelectItem key={c} value={c}>{c}</SelectItem>
+            {channels.map((c) => (
+              <SelectItem key={c.value} value={c.label}>{c.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -64,8 +87,8 @@ export function FilterBar({ dashboard, compact }: FilterBarProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="_all">Todas as filas</SelectItem>
-            {MOCK_QUEUES.map((q) => (
-              <SelectItem key={q.id} value={q.name}>{q.name}</SelectItem>
+            {queues.map((q) => (
+              <SelectItem key={q.value} value={q.value}>{q.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -83,8 +106,8 @@ export function FilterBar({ dashboard, compact }: FilterBarProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="_all">Todos os agentes</SelectItem>
-            {MOCK_AGENTS.map((a) => (
-              <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+            {agents.map((a) => (
+              <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>

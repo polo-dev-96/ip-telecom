@@ -39,8 +39,8 @@ export function Channels({ dashboard }: ChannelsProps) {
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm">Volume por Canal</CardTitle></CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={volumeData}>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={volumeData} margin={{ top: 25, right: 10, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} />
                 <YAxis tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} />
@@ -56,8 +56,8 @@ export function Channels({ dashboard }: ChannelsProps) {
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm">SLA de Resolução por Canal (%)</CardTitle></CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={slaData}>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={slaData} margin={{ top: 25, right: 10, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} />

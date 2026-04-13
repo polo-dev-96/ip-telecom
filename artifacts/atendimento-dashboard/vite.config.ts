@@ -40,6 +40,10 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api\/utech/, "/utech"),
         secure: true,
       },
+      "/api": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+      },
     },
   },
   preview: {

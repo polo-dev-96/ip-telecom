@@ -1,7 +1,7 @@
 import type { DashboardState } from "@/hooks/useDashboard";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import {
-  CheckCircle2, Clock, Hourglass, Timer, TrendingUp, TrendingDown, CalendarDays, CalendarRange
+  CheckCircle2, Clock, Hourglass, TrendingUp, TrendingDown, CalendarDays, CalendarRange
 } from "lucide-react";
 import { fmtMinutes, fmtPct, fmtNumber } from "@/lib/utils/formatters";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,7 +51,7 @@ export function Overview({ dashboard }: OverviewProps) {
       </div>
 
       {/* KPI cards - Row 1 */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         <MetricCard
           title="Total de Atendimentos no Período"
           value={fmtNumber(s.totalClosed)}
@@ -74,13 +74,6 @@ export function Overview({ dashboard }: OverviewProps) {
           color="warning"
         />
         <MetricCard
-          title="TMR"
-          value={fmtMinutes(s.tmrMean)}
-          icon={<Timer size={18} />}
-          tooltip="Tempo Médio de Resolução — tempo total médio de abertura até fechamento"
-          color="purple"
-        />
-        <MetricCard
           title="TMA%"
           value={fmtPct(s.tmaVariationPct)}
           icon={s.tmaVariationPct >= 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
@@ -90,20 +83,13 @@ export function Overview({ dashboard }: OverviewProps) {
       </div>
 
       {/* KPI cards - Row 2 */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4">
         <MetricCard
           title="TME%"
           value={fmtPct(s.tmeVariationPct)}
           icon={s.tmeVariationPct >= 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
           tooltip="Variação percentual do TME em relação ao período anterior"
           color={s.tmeVariationPct <= 0 ? "success" : "danger"}
-        />
-        <MetricCard
-          title="TMR%"
-          value={fmtPct(s.tmrVariationPct)}
-          icon={s.tmrVariationPct >= 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-          tooltip="Variação percentual do TMR em relação ao período anterior"
-          color={s.tmrVariationPct <= 0 ? "success" : "danger"}
         />
         <MetricCard
           title="Média de Atendimentos/Dia"
@@ -131,8 +117,8 @@ export function Overview({ dashboard }: OverviewProps) {
             <p className="text-xs text-foreground/70 font-medium">Top 10 filas por volume de atendimentos</p>
           </CardHeader>
           <CardContent className="relative">
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={queueData} barSize={36} layout="vertical">
+            <ResponsiveContainer width="100%" height={Math.max(300, queueData.length * 50)}>
+              <BarChart data={queueData} barSize={36} layout="vertical" margin={{ top: 5, right: 40, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} axisLine={false} tickLine={false} />
                 <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} axisLine={false} tickLine={false} width={120} />
@@ -174,8 +160,8 @@ export function Overview({ dashboard }: OverviewProps) {
             <p className="text-xs text-foreground/70 font-medium">Distribuição por canal de atendimento</p>
           </CardHeader>
           <CardContent className="relative">
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={channelData} barSize={48}>
+            <ResponsiveContainer width="100%" height={Math.max(300, channelData.length * 50)}>
+              <BarChart data={channelData} barSize={48} margin={{ top: 25, right: 10, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" vertical={false} />
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} axisLine={false} tickLine={false} />

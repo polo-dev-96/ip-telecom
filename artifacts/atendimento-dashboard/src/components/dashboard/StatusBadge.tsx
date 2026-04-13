@@ -33,6 +33,7 @@ export function ChannelBadge({ channel }: { channel: string }) {
     Webchat: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
     Email: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
     Telegram: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-400",
+    Facebook: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400",
   };
   return (
     <Badge className={cn("text-xs", colors[channel] ?? "bg-gray-100 text-gray-800")}>
