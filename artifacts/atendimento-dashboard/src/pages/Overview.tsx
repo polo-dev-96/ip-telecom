@@ -51,7 +51,7 @@ export function Overview({ dashboard }: OverviewProps) {
       </div>
 
       {/* KPI cards - Row 1 */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="flex flex-wrap justify-center gap-4">
         <MetricCard
           title="Total de Atendimentos no Período"
           value={fmtNumber(s.totalClosed)}
@@ -73,24 +73,10 @@ export function Overview({ dashboard }: OverviewProps) {
           tooltip="Tempo Médio de Espera — tempo médio até a primeira resposta"
           color="warning"
         />
-        <MetricCard
-          title="TMA%"
-          value={fmtPct(s.tmaVariationPct)}
-          icon={s.tmaVariationPct >= 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-          tooltip="Variação percentual do TMA em relação ao período anterior"
-          color={s.tmaVariationPct <= 0 ? "success" : "danger"}
-        />
       </div>
 
       {/* KPI cards - Row 2 */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4">
-        <MetricCard
-          title="TME%"
-          value={fmtPct(s.tmeVariationPct)}
-          icon={s.tmeVariationPct >= 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-          tooltip="Variação percentual do TME em relação ao período anterior"
-          color={s.tmeVariationPct <= 0 ? "success" : "danger"}
-        />
+      <div className="flex flex-wrap justify-center gap-4">
         <MetricCard
           title="Média de Atendimentos/Dia"
           value={fmtNumber(Math.round(s.avgPerDay))}
