@@ -16,7 +16,7 @@ interface AttendancesProps {
 
 const PAGE_SIZE = 20;
 
-type SortKey = keyof ClosedAttendance;
+type SortKey = keyof ClosedAttendance | "tma" | "tme";
 type SortDir = "asc" | "desc";
 
 export function Attendances({ dashboard }: AttendancesProps) {
@@ -40,8 +40,24 @@ export function Attendances({ dashboard }: AttendancesProps) {
 
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) => {
-      const va = a[sortKey] as string | number | boolean | null;
-      const vb = b[sortKey] as string | number | boolean | null;
+      let va: number | string | null = null;
+      let vb: number | string | null = null;
+
+      if (sortKey === "tma") {
+        // TMA = ttrMinutes - frtMinutes
+        va = Math.max(a.ttrMinutes - (a.frtMinutes ?? 0), 0);
+        vb = Math.max(b.ttrMinutes - (b.frtMinutes ?? 0), 0);
+      } else if (sortKey === "tme") {
+        // TME = frtMinutes
+        va = a.frtMinutes ?? 0;
+        vb = b.frtMinutes ?? 0;
+      } else {
+        const rawA = a[sortKey as keyof ClosedAttendance];
+        const rawB = b[sortKey as keyof ClosedAttendance];
+        va = typeof rawA === "boolean" ? null : (rawA as number | string | null);
+        vb = typeof rawB === "boolean" ? null : (rawB as number | string | null);
+      }
+
       if (va === null || va === undefined) return 1;
       if (vb === null || vb === undefined) return -1;
       const cmp = va < vb ? -1 : va > vb ? 1 : 0;
@@ -65,6 +81,11 @@ export function Attendances({ dashboard }: AttendancesProps) {
   function SortIcon({ k }: { k: SortKey }) {
     if (sortKey !== k) return <ArrowUpDown size={12} className="text-muted-foreground" />;
     return sortDir === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />;
+  }
+
+  // Type guard for calculated fields
+  function isCalculatedField(key: SortKey): key is "tma" | "tme" {
+    return key === "tma" || key === "tme";
   }
 
   function exportCsv() {
@@ -134,13 +155,13 @@ export function Attendances({ dashboard }: AttendancesProps) {
                     </button>
                   </TableHead>
                   <TableHead className="whitespace-nowrap">
-                    <button onClick={() => toggleSort("frtMinutes")} className="flex items-center gap-1 hover:text-foreground">
-                      TMA <SortIcon k="frtMinutes" />
+                    <button onClick={() => toggleSort("tma")} className="flex items-center gap-1 hover:text-foreground">
+                      TMA <SortIcon k="tma" />
                     </button>
                   </TableHead>
                   <TableHead className="whitespace-nowrap">
-                    <button onClick={() => toggleSort("frtMinutes")} className="flex items-center gap-1 hover:text-foreground">
-                      TME <SortIcon k="frtMinutes" />
+                    <button onClick={() => toggleSort("tme")} className="flex items-center gap-1 hover:text-foreground">
+                      TME <SortIcon k="tme" />
                     </button>
                   </TableHead>
                   <TableHead></TableHead>
@@ -154,7 +175,12 @@ export function Attendances({ dashboard }: AttendancesProps) {
                     <TableCell className="text-foreground/90">{a.customerNameMasked}</TableCell>
                     <TableCell className="whitespace-nowrap text-foreground">{a.agentName ?? <span className="text-foreground/70 italic">Bot</span>}</TableCell>
                     <TableCell className="whitespace-nowrap text-foreground/90">{fmtDateTime(a.closedAt)}</TableCell>
-                    <TableCell className="whitespace-nowrap">{fmtMinutes(Math.max(a.ttrMinutes - (a.frtMinutes ?? 0), 0))}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {(() => {
+                        const tma = Math.max(a.ttrMinutes - (a.frtMinutes ?? 0), 0);
+                        return tma > 0 ? fmtMinutes(tma) : <span className="text-foreground/70 italic">—</span>;
+                      })()}
+                    </TableCell>
                     <TableCell className="whitespace-nowrap text-foreground">{a.frtMinutes !== null ? fmtMinutes(a.frtMinutes) : <span className="text-foreground/70 italic">—</span>}</TableCell>
                     <TableCell>
                       <Link to={`/atendimento/${a.id}`}>

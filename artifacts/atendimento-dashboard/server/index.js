@@ -28,6 +28,7 @@ const QUEUES_URL = `https://ipfibra.ippolopabx.com.br/utech/v1/queue/queuelist?p
 // ─── Name lookup maps ─────────────────────────────────────────
 let AGENT_MAP = {}; // agentId -> name
 let QUEUE_MAP = {};  // queueId -> name
+let AGENT_QUEUES = {}; // agentId -> array of {queue, priority}
 
 async function loadAgentNames() {
   try {
@@ -35,12 +36,17 @@ async function loadAgentNames() {
     const json = await res.json();
     const agents = json?.agentlist?.agents || [];
     AGENT_MAP = {};
+    AGENT_QUEUES = {};
     for (const agent of agents) {
       if (agent.agentid && agent.name) {
         AGENT_MAP[agent.agentid] = agent.name;
       }
+      if (agent.agentid && agent.queues) {
+        AGENT_QUEUES[agent.agentid] = agent.queues;
+      }
     }
     console.log(`👤 Loaded ${Object.keys(AGENT_MAP).length} agent names`);
+    console.log(`📋 Loaded queues for ${Object.keys(AGENT_QUEUES).length} agents`);
   } catch (err) {
     console.error("❌ Failed to load agent names:", err.message);
   }
@@ -71,6 +77,21 @@ function getAgentName(agentId) {
 function getQueueName(queueId) {
   if (!queueId) return "Geral";
   return QUEUE_MAP[String(queueId)] || String(queueId);
+}
+
+function getAgentTeam(agentId) {
+  if (!agentId) return "Geral";
+  const queues = AGENT_QUEUES[String(agentId)] || [];
+  // Find queue in the 8000 range (main team queue)
+  const teamQueue = queues.find((q) => q.queue && q.queue.startsWith("8"));
+  if (teamQueue) {
+    return getQueueName(teamQueue.queue);
+  }
+  // Fallback to first queue if no 8000 range found
+  if (queues.length > 0) {
+    return getQueueName(queues[0].queue);
+  }
+  return "Geral";
 }
 
 // ─── Auto-discover main table ──────────────────────────────────
@@ -158,7 +179,7 @@ function mapRow(row) {
     customerNameMasked: row.contato || "",
     channel,
     queue: getQueueName(row.fila),
-    team: "Geral",
+    team: getAgentTeam(row.agente),
     agentId: row.agente ? String(row.agente) : null,
     agentName: row.agente ? getAgentName(row.agente) : null,
     openedAt: startDate.toISOString(),
