@@ -18,28 +18,28 @@ export function NavLink({ to, label, icon, collapsed, highlight }: NavLinkProps)
     <Link
       to={to}
       className={cn(
-        "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200",
-        "hover:bg-white/[0.12] hover:text-white",
+        "group relative flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-200",
+        "hover:bg-white/[0.08]",
         collapsed ? "justify-center" : "",
         isActive
-          ? "text-white bg-white/[0.15] shadow-[0_0_15px_rgba(255,255,255,0.1)]"
-          : "text-white/95 hover:text-white"
+          ? "text-white bg-white/[0.12]"
+          : "text-white/70 hover:text-white"
       )}
     >
       {/* Active indicator */}
       {isActive && (
-        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-blue-400 rounded-r-full" />
       )}
 
-      {/* Icon with enhanced styling */}
+      {/* Icon */}
       <span
         className={cn(
-          "relative shrink-0 transition-all duration-200",
+          "relative shrink-0 transition-colors duration-200",
           isActive
-            ? "text-white drop-shadow-[0_0_4px_rgba(255,255,255,0.5)]"
+            ? "text-blue-400"
             : highlight
-            ? "text-amber-300"
-            : "text-white/90 group-hover:text-white"
+            ? "text-amber-400"
+            : "text-white/60 group-hover:text-white/90"
         )}
       >
         {icon}
@@ -47,10 +47,10 @@ export function NavLink({ to, label, icon, collapsed, highlight }: NavLinkProps)
 
       {/* Label */}
       {!collapsed && (
-        <span className="relative truncate text-white font-bold tracking-wide">
+        <span className="relative truncate">
           {label}
           {highlight && (
-            <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-400/30 text-amber-200 border border-amber-400/40 shadow-[0_0_8px_rgba(251,191,36,0.2)]">
+            <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/25">
               LIVE
             </span>
           )}

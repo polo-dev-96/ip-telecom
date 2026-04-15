@@ -180,11 +180,8 @@ export function LiveMonitoring() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Activity size={24} className="text-primary" />
-            Acompanhamento de Atendimentos
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Acompanhamento de Atendimentos</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
             Monitoramento em tempo real dos atendimentos em andamento
             {lastUpdate && (
               <span className="ml-2 text-[10px] opacity-60">
@@ -230,37 +227,33 @@ export function LiveMonitoring() {
       {/* Summary cards - Premium */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Total */}
-        <Card className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] to-white/[0.02] shadow-lg group">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-primary/10 to-transparent rounded-bl-full" />
-          <CardContent className="relative p-5">
+        <Card className="rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
+          <CardContent className="p-5">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary/10 text-primary shadow-[0_0_15px_hsl(var(--primary)/0.3)]">
+              <div className="flex items-center justify-center w-11 h-11 rounded-2xl bg-primary/10 text-primary dark:bg-primary/15">
                 <Headphones size={22} />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-foreground/90 font-bold">Em Atendimento</p>
-                <p className="text-3xl font-bold number-display tabular-nums tracking-tight">{attendances.length}</p>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Em Atendimento</p>
+                <p className="text-3xl font-extrabold number-display tabular-nums tracking-tight text-foreground">{attendances.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Queue / With Agent - MERGED */}
-        <Card className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] to-white/[0.02] shadow-lg group">
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-bl-full" />
-          <CardContent className="relative p-5">
+        {/* Queue / With Agent */}
+        <Card className="rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
+          <CardContent className="p-5">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-amber-500/10 text-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.3)]">
+              <div className="flex items-center justify-center w-11 h-11 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 dark:bg-amber-500/15">
                 <Timer size={22} />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-foreground/90 font-bold">Aguardando na Fila / Com Agente</p>
-                <p className="text-3xl font-bold number-display tabular-nums tracking-tight">
-                  <span className="text-amber-400">{inQueue.length}</span>
-                  <span className="text-muted-foreground/60 mx-1">/</span>
-                  <span className="text-emerald-400">{withAgent.length}</span>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Fila / Com Agente</p>
+                <p className="text-3xl font-extrabold number-display tabular-nums tracking-tight">
+                  <span className="text-amber-600 dark:text-amber-400">{inQueue.length}</span>
+                  <span className="text-muted-foreground mx-1">/</span>
+                  <span className="text-emerald-600 dark:text-emerald-400">{withAgent.length}</span>
                 </p>
               </div>
             </div>
@@ -268,17 +261,15 @@ export function LiveMonitoring() {
         </Card>
 
         {/* Channels */}
-        <Card className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] to-white/[0.02] shadow-lg group">
-          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-cyan-500/10 to-transparent rounded-bl-full" />
-          <CardContent className="relative p-5">
+        <Card className="rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
+          <CardContent className="p-5">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-cyan-500/10 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.3)]">
+              <div className="flex items-center justify-center w-11 h-11 rounded-2xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 dark:bg-cyan-500/15">
                 <MessageSquare size={22} />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-foreground/90 font-bold">Canais Ativos</p>
-                <p className="text-3xl font-bold number-display tabular-nums tracking-tight text-cyan-400">
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Canais Ativos</p>
+                <p className="text-3xl font-extrabold number-display tabular-nums tracking-tight text-cyan-600 dark:text-cyan-400">
                   {new Set(attendances.map((a) => a.channel)).size}
                 </p>
               </div>
@@ -288,14 +279,14 @@ export function LiveMonitoring() {
       </div>
 
       {/* Sub-tabs */}
-      <div className="flex gap-1 border-b border-white/[0.06] pb-0">
+      <div className="flex gap-1 border-b border-border/50 dark:border-white/[0.06] pb-0">
         <button
           onClick={() => { setSubTab("acompanhamento"); setSelectedQueue(null); setSelectedAgent(null); }}
           className={cn(
             "px-4 py-2.5 text-sm font-medium rounded-t-lg transition-all border-b-2",
             subTab === "acompanhamento"
               ? "border-primary text-primary bg-primary/5"
-              : "border-transparent text-muted-foreground hover:text-foreground hover:bg-white/[0.03]"
+              : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
           )}
         >
           Acompanhamento
@@ -307,7 +298,7 @@ export function LiveMonitoring() {
             "px-4 py-2.5 text-sm font-medium rounded-t-lg transition-all border-b-2",
             subTab === "filas"
               ? "border-primary text-primary bg-primary/5"
-              : "border-transparent text-muted-foreground hover:text-foreground hover:bg-white/[0.03]"
+              : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
           )}
         >
           Atendimentos em Fila
@@ -318,7 +309,7 @@ export function LiveMonitoring() {
             "px-4 py-2.5 text-sm font-medium rounded-t-lg transition-all border-b-2",
             subTab === "agentes"
               ? "border-primary text-primary bg-primary/5"
-              : "border-transparent text-muted-foreground hover:text-foreground hover:bg-white/[0.03]"
+              : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
           )}
         >
           Atendimento com Agente
@@ -341,9 +332,8 @@ export function LiveMonitoring() {
         <>
           {/* Attendance list */}
           {(!loading || attendances.length > 0) && (
-            <Card className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.05] to-white/[0.02] shadow-lg">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/[0.03] via-transparent to-transparent pointer-events-none" />
-              <CardHeader className="relative pb-4 border-b border-white/[0.06]">
+            <Card className="rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
+              <CardHeader className="pb-4 border-b border-border/50 dark:border-white/[0.06]">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-3">
                     <span className="relative flex h-2.5 w-2.5">
@@ -351,15 +341,15 @@ export function LiveMonitoring() {
                       <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
                     </span>
                     Atendimentos em Andamento
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
                       {filtered.length}
                     </span>
                   </CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="relative p-0">
+              <CardContent className="p-0">
                 <ScrollArea className="h-[480px] scrollbar-thin">
-                  <div className="divide-y divide-white/[0.04]">
+                  <div className="divide-y divide-border/30 dark:divide-white/[0.04]">
                     {filtered.length === 0 && (
                       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
                         <div className="w-12 h-12 rounded-full bg-white/[0.03] flex items-center justify-center">
@@ -371,13 +361,11 @@ export function LiveMonitoring() {
                     {filtered.map((a) => (
                       <div
                         key={a.id}
-                        className="group flex items-center gap-4 px-5 py-4 hover:bg-white/[0.03] transition-all duration-200"
+                        className="group flex items-center gap-4 px-5 py-4 hover:bg-muted/50 transition-all duration-200"
                       >
                         <div className={cn(
-                          "w-1 h-14 rounded-full shrink-0 shadow-[0_0_10px]",
-                          a.phase === "fila"
-                            ? "bg-amber-500 shadow-amber-500/30"
-                            : "bg-emerald-500 shadow-emerald-500/30"
+                          "w-1 h-12 rounded-full shrink-0",
+                          a.phase === "fila" ? "bg-amber-500" : "bg-emerald-500"
                         )} />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 mb-1">
@@ -432,16 +420,15 @@ export function LiveMonitoring() {
 
           {/* Agent volume chart */}
           {agentChartData.length > 0 && (
-            <Card className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.05] to-white/[0.02] shadow-lg">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-400/5 via-transparent to-slate-500/5 pointer-events-none" />
-              <CardHeader className="relative pb-3">
-                <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shadow-[0_0_8px_rgba(148,163,184,0.5)]" />
+            <Card className="rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
+              <CardHeader className="pb-2 space-y-0">
+                <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2 text-foreground">
+                  <span className="w-2 h-2 rounded-full bg-chart-1" />
                   Atendimentos por Agente
                 </CardTitle>
-                <p className="text-xs text-muted-foreground/70">Top agentes em tempo real</p>
+                <p className="text-xs text-muted-foreground">Top agentes em tempo real</p>
               </CardHeader>
-              <CardContent className="relative">
+              <CardContent className="pt-2">
                 <ResponsiveContainer width="100%" height={Math.max(200, agentChartData.length * 40)}>
                   <BarChart data={agentChartData} layout="vertical" margin={{ left: 10, right: 20 }} barSize={24}>
                     <defs>
@@ -450,21 +437,18 @@ export function LiveMonitoring() {
                         <stop offset="100%" stopColor="hsl(var(--foreground))" stopOpacity={0.9} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.3)" horizontal={false} />
-                    <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12, fill: "hsl(var(--foreground))", fontWeight: 500 }} axisLine={false} tickLine={false} />
-                    <YAxis dataKey="name" type="category" tick={{ fontSize: 12, fill: "hsl(var(--foreground))", fontWeight: 600 }} width={130} axisLine={false} tickLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                    <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                    <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} width={130} axisLine={false} tickLine={false} />
                     <RechartTooltip
-                      cursor={{ fill: "rgba(255, 255, 255, 0.03)" }}
                       contentStyle={{
-                        background: "rgba(17, 24, 39, 0.95)",
-                        border: "1px solid rgba(255, 255, 255, 0.1)",
+                        background: "hsl(var(--card))",
+                        border: "1px solid hsl(var(--border))",
                         borderRadius: 12,
                         fontSize: 12,
-                        backdropFilter: "blur(8px)",
-                        boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)"
+                        boxShadow: "0 8px 24px rgba(0,0,0,0.15)"
                       }}
-                      labelStyle={{ color: "#9ca3af", fontSize: 11 }}
-                      itemStyle={{ color: "hsl(var(--muted-foreground))", fontWeight: 500 }}
+                      labelStyle={{ color: "hsl(var(--muted-foreground))", fontSize: 11 }}
                       formatter={(value: number) => [`${value} atendimento${value !== 1 ? "s" : ""}`, "Total"]}
                     />
                     <Bar dataKey="total" name="Atendimentos" fill="url(#agentGradientNeutral)" radius={[0, 6, 6, 0]}>
@@ -491,9 +475,9 @@ export function LiveMonitoring() {
             <Card
               key={q.name}
               onClick={() => setSelectedQueue(q.name)}
-              className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] to-white/[0.02] shadow-lg group cursor-pointer hover:border-primary/30 hover:shadow-primary/10 transition-all"
+              className="relative rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm group cursor-pointer hover:border-primary/30 hover:shadow-md transition-all overflow-hidden"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
               <CardContent className="relative p-5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -526,10 +510,10 @@ export function LiveMonitoring() {
             <h2 className="text-lg font-bold">{selectedQueue}</h2>
             <Badge variant="outline" className="text-xs">{queueAttendances.length} atendimento{queueAttendances.length !== 1 ? "s" : ""}</Badge>
           </div>
-          <Card className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.05] to-white/[0.02] shadow-lg">
-            <CardContent className="relative p-0">
+          <Card className="rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
+            <CardContent className="p-0">
               <ScrollArea className="h-[500px] scrollbar-thin">
-                <div className="divide-y divide-white/[0.04]">
+                <div className="divide-y divide-border/30 dark:divide-white/[0.04]">
                   {queueAttendances.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
                       <User size={20} className="text-muted-foreground/50" />
@@ -539,9 +523,9 @@ export function LiveMonitoring() {
                   {queueAttendances.map((a) => (
                     <div
                       key={a.id}
-                      className="group flex items-center gap-4 px-5 py-4 hover:bg-white/[0.03] transition-all duration-200"
+                      className="group flex items-center gap-4 px-5 py-4 hover:bg-muted/50 transition-all duration-200"
                     >
-                      <div className="w-1 h-14 rounded-full shrink-0 shadow-[0_0_10px] bg-amber-500 shadow-amber-500/30" />
+                      <div className="w-1 h-12 rounded-full shrink-0 bg-amber-500" />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-sm font-semibold truncate">{a.contactName}</span>
@@ -600,9 +584,9 @@ export function LiveMonitoring() {
             <Card
               key={ag.name}
               onClick={() => setSelectedAgent(ag.name)}
-              className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] to-white/[0.02] shadow-lg group cursor-pointer hover:border-emerald-500/30 hover:shadow-emerald-500/10 transition-all"
+              className="relative rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm group cursor-pointer hover:border-emerald-500/30 hover:shadow-md transition-all overflow-hidden"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
               <CardContent className="relative p-5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -635,10 +619,10 @@ export function LiveMonitoring() {
             <h2 className="text-lg font-bold">{selectedAgent}</h2>
             <Badge variant="outline" className="text-xs">{agentAttendances.length} atendimento{agentAttendances.length !== 1 ? "s" : ""}</Badge>
           </div>
-          <Card className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.05] to-white/[0.02] shadow-lg">
-            <CardContent className="relative p-0">
+          <Card className="rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
+            <CardContent className="p-0">
               <ScrollArea className="h-[500px] scrollbar-thin">
-                <div className="divide-y divide-white/[0.04]">
+                <div className="divide-y divide-border/30 dark:divide-white/[0.04]">
                   {agentAttendances.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
                       <User size={20} className="text-muted-foreground/50" />
@@ -648,9 +632,9 @@ export function LiveMonitoring() {
                   {agentAttendances.map((a) => (
                     <div
                       key={a.id}
-                      className="group flex items-center gap-4 px-5 py-4 hover:bg-white/[0.03] transition-all duration-200"
+                      className="group flex items-center gap-4 px-5 py-4 hover:bg-muted/50 transition-all duration-200"
                     >
-                      <div className="w-1 h-14 rounded-full shrink-0 shadow-[0_0_10px] bg-emerald-500 shadow-emerald-500/30" />
+                      <div className="w-1 h-12 rounded-full shrink-0 bg-emerald-500" />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-sm font-semibold truncate">{a.contactName}</span>
@@ -665,7 +649,7 @@ export function LiveMonitoring() {
                       </div>
                       <div className="hidden sm:flex flex-col items-end gap-1 min-w-[160px]">
                         <span className="text-[10px] text-muted-foreground/50 font-mono uppercase tracking-wider">Agente</span>
-                        <span className="text-xs font-medium text-emerald-400 flex items-center gap-1.5">
+                        <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                           <Headphones size={12} />
                           {a.dstName}
                         </span>

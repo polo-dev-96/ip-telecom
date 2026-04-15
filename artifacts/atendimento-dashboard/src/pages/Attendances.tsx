@@ -109,16 +109,19 @@ export function Attendances({ dashboard }: AttendancesProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Atendimentos Finalizados</h1>
-        <p className="text-sm text-foreground/80 font-medium mt-1">{sorted.length} registros encontrados</p>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Atendimentos Finalizados</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">{sorted.length} registros encontrados</p>
       </div>
 
-      <Card>
+      <Card className="rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <CardTitle className="text-sm font-medium">Tabela de Atendimentos</CardTitle>
+            <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2 text-foreground">
+              <span className="w-2 h-2 rounded-full bg-primary" />
+              Tabela de Atendimentos
+            </CardTitle>
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -140,27 +143,27 @@ export function Attendances({ dashboard }: AttendancesProps) {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="whitespace-nowrap">
-                    <button onClick={() => toggleSort("protocol")} className="flex items-center gap-1 hover:text-foreground">
+                <TableRow className="border-border/50 dark:border-white/[0.06]">
+                  <TableHead className="whitespace-nowrap text-muted-foreground font-semibold text-xs">
+                    <button onClick={() => toggleSort("protocol")} className="flex items-center gap-1 hover:text-foreground transition-colors">
                       Protocolo <SortIcon k="protocol" />
                     </button>
                   </TableHead>
-                  <TableHead>Canal</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Agente</TableHead>
-                  <TableHead className="whitespace-nowrap">
-                    <button onClick={() => toggleSort("closedAt")} className="flex items-center gap-1 hover:text-foreground">
+                  <TableHead className="text-muted-foreground font-semibold text-xs">Canal</TableHead>
+                  <TableHead className="text-muted-foreground font-semibold text-xs">Cliente</TableHead>
+                  <TableHead className="text-muted-foreground font-semibold text-xs">Agente</TableHead>
+                  <TableHead className="whitespace-nowrap text-muted-foreground font-semibold text-xs">
+                    <button onClick={() => toggleSort("closedAt")} className="flex items-center gap-1 hover:text-foreground transition-colors">
                       Fechamento <SortIcon k="closedAt" />
                     </button>
                   </TableHead>
-                  <TableHead className="whitespace-nowrap">
-                    <button onClick={() => toggleSort("tma")} className="flex items-center gap-1 hover:text-foreground">
+                  <TableHead className="whitespace-nowrap text-muted-foreground font-semibold text-xs">
+                    <button onClick={() => toggleSort("tma")} className="flex items-center gap-1 hover:text-foreground transition-colors">
                       TMA <SortIcon k="tma" />
                     </button>
                   </TableHead>
-                  <TableHead className="whitespace-nowrap">
-                    <button onClick={() => toggleSort("tme")} className="flex items-center gap-1 hover:text-foreground">
+                  <TableHead className="whitespace-nowrap text-muted-foreground font-semibold text-xs">
+                    <button onClick={() => toggleSort("tme")} className="flex items-center gap-1 hover:text-foreground transition-colors">
                       TME <SortIcon k="tme" />
                     </button>
                   </TableHead>
@@ -169,8 +172,8 @@ export function Attendances({ dashboard }: AttendancesProps) {
               </TableHeader>
               <TableBody>
                 {paginated.map((a) => (
-                  <TableRow key={a.id} className="text-xs">
-                    <TableCell className="font-mono text-xs whitespace-nowrap text-foreground">{a.protocol}</TableCell>
+                  <TableRow key={a.id} className="text-xs border-border/30 dark:border-white/[0.04] hover:bg-muted/50 transition-colors">
+                    <TableCell className="font-mono text-xs whitespace-nowrap text-foreground/90">{a.protocol}</TableCell>
                     <TableCell><ChannelBadge channel={a.channel} /></TableCell>
                     <TableCell className="text-foreground/90">{a.customerNameMasked}</TableCell>
                     <TableCell className="whitespace-nowrap text-foreground">{a.agentName ?? <span className="text-foreground/70 italic">Bot</span>}</TableCell>
@@ -193,7 +196,7 @@ export function Attendances({ dashboard }: AttendancesProps) {
                 ))}
                 {paginated.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-10 text-foreground/80 text-sm font-medium">
+                    <TableCell colSpan={8} className="text-center py-10 text-muted-foreground text-sm">
                       Nenhum atendimento encontrado
                     </TableCell>
                   </TableRow>
@@ -203,8 +206,8 @@ export function Attendances({ dashboard }: AttendancesProps) {
           </div>
 
           {/* Pagination */}
-          <div className="flex items-center justify-between px-4 py-3 border-t">
-            <p className="text-xs text-foreground/80 font-medium">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-border/50 dark:border-white/[0.06]">
+            <p className="text-xs text-muted-foreground font-medium">
               {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, sorted.length)} de {sorted.length}
             </p>
             <div className="flex items-center gap-1">

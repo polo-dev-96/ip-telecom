@@ -78,19 +78,19 @@ async function fetchRamais(): Promise<RamalData[]> {
 
 function translateStatus(status: "Reachable" | "Unreachable"): {
   label: string;
-  variant: "success" | "destructive";
+  variant: "outline";
   icon: typeof Wifi;
 } {
   if (status === "Reachable") {
     return {
       label: "Registrado",
-      variant: "success",
+      variant: "outline",
       icon: Wifi,
     };
   }
   return {
     label: "Não Registrado",
-    variant: "destructive",
+    variant: "outline",
     icon: WifiOff,
   };
 }
@@ -126,11 +126,8 @@ export function Ramais() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Phone className="w-6 h-6 text-primary" />
-            Monitorar Ramais
-          </h1>
-          <p className="text-sm text-foreground/80 font-medium mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Monitorar Ramais</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
             Status em tempo real dos ramais SIP
           </p>
         </div>
@@ -148,52 +145,49 @@ export function Ramais() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="relative overflow-hidden border border-border/50">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
-          <CardContent className="relative p-5">
+        <Card className="rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-foreground uppercase tracking-wide">
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                   Total de Ramais
                 </p>
-                <p className="text-2xl font-bold mt-1">{totalRamais}</p>
+                <p className="text-[28px] leading-tight font-extrabold mt-2 text-foreground">{totalRamais}</p>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 dark:bg-primary/15 flex items-center justify-center">
                 <Server className="w-5 h-5 text-primary" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden border border-border/50">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent" />
-          <CardContent className="relative p-5">
+        <Card className="rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-foreground uppercase tracking-wide">
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                   Registrados
                 </p>
-                <p className="text-2xl font-bold text-emerald-600 mt-1">{registrados}</p>
+                <p className="text-[28px] leading-tight font-extrabold text-emerald-600 dark:text-emerald-400 mt-2">{registrados}</p>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                <Wifi className="w-5 h-5 text-emerald-500" />
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/15 flex items-center justify-center">
+                <Wifi className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden border border-border/50">
-          <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent" />
-          <CardContent className="relative p-5">
+        <Card className="rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-foreground uppercase tracking-wide">
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                   Não Registrados
                 </p>
-                <p className="text-2xl font-bold text-red-600 mt-1">{naoRegistrados}</p>
+                <p className="text-[28px] leading-tight font-extrabold text-red-600 dark:text-red-400 mt-2">{naoRegistrados}</p>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
-                <WifiOff className="w-5 h-5 text-red-500" />
+              <div className="w-12 h-12 rounded-2xl bg-red-500/10 dark:bg-red-500/15 flex items-center justify-center">
+                <WifiOff className="w-5 h-5 text-red-600 dark:text-red-400" />
               </div>
             </div>
           </CardContent>
@@ -201,15 +195,15 @@ export function Ramais() {
       </div>
 
       {/* Main Table Card */}
-      <Card className="border border-border/50">
+      <Card className="rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
         <CardHeader className="pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <Activity className="w-4 h-4 text-primary" />
+              <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2 text-foreground">
+                <span className="w-2 h-2 rounded-full bg-primary" />
                 Lista de Ramais
               </CardTitle>
-              <p className="text-xs text-foreground/70 font-medium mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 {filteredRamais.length} ramais encontrados
               </p>
             </div>
@@ -242,16 +236,16 @@ export function Ramais() {
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-muted/50 hover:bg-muted/50">
-                    <TableHead className="w-20 text-foreground font-bold">Ramal</TableHead>
-                    <TableHead className="text-foreground font-bold min-w-[180px]">
+                  <TableRow className="border-border/50 dark:border-white/[0.06]">
+                    <TableHead className="w-20 text-muted-foreground font-semibold text-xs">Ramal</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold text-xs min-w-[180px]">
                       <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
+                        <Users className="w-3.5 h-3.5" />
                         Nome
                       </div>
                     </TableHead>
-                    <TableHead className="w-36 text-foreground font-bold">Estado</TableHead>
-                    <TableHead className="text-foreground font-bold min-w-[280px]">Endereço SIP</TableHead>
+                    <TableHead className="w-36 text-muted-foreground font-semibold text-xs">Estado</TableHead>
+                    <TableHead className="text-muted-foreground font-semibold text-xs min-w-[280px]">Endereço SIP</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -259,7 +253,7 @@ export function Ramais() {
                     <TableRow>
                       <TableCell
                         colSpan={4}
-                        className="text-center py-10 text-foreground/80 font-medium"
+                        className="text-center py-10 text-muted-foreground text-sm"
                       >
                         {search
                           ? "Nenhum ramal encontrado para esta busca"
@@ -274,17 +268,12 @@ export function Ramais() {
                       return (
                         <TableRow
                           key={ramal.exten}
-                          className={cn(
-                            "transition-colors",
-                            ramal.status === "Reachable"
-                              ? "hover:bg-emerald-500/5"
-                              : "hover:bg-red-500/5"
-                          )}
+                          className="text-xs border-border/30 dark:border-white/[0.04] hover:bg-muted/50 transition-colors"
                         >
-                          <TableCell className="font-mono text-sm font-semibold text-foreground">
+                          <TableCell className="font-mono text-xs font-semibold text-foreground">
                             {ramal.exten}
                           </TableCell>
-                          <TableCell className="font-medium text-foreground">
+                          <TableCell className="font-semibold text-foreground text-xs">
                             {ramal.name}
                           </TableCell>
                           <TableCell>
@@ -301,7 +290,7 @@ export function Ramais() {
                               {statusInfo.label}
                             </Badge>
                           </TableCell>
-                          <TableCell className="font-mono text-xs text-foreground/80">
+                          <TableCell className="font-mono text-xs text-muted-foreground">
                             {(() => {
                               // Try all possible field names
                               const addr = (ramal as any).adrress || (ramal as any).address || (ramal as any).sip || (ramal as any).endpoint || "";

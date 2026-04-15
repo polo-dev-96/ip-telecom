@@ -145,34 +145,34 @@
 
 /* Light mode - Complete professional theme */
 .light {
-  --background: 220 20% 97%;
-  --foreground: 222 47% 11%;
-  --border: 220 13% 88%;
+  --background: 220 16% 96%;
+  --foreground: 224 24% 16%;
+  --border: 220 13% 90%;
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --card-border: 220 13% 90%;
+  --card-foreground: 224 24% 16%;
+  --card-border: 220 13% 91%;
   --sidebar: 220 20% 98%;
-  --sidebar-foreground: 222 47% 15%;
+  --sidebar-foreground: 224 24% 15%;
   --sidebar-border: 220 13% 90%;
   --sidebar-primary: 217 91% 60%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 220 14% 96%;
-  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-accent-foreground: 224 24% 16%;
   --sidebar-ring: 217 91% 60%;
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
+  --popover-foreground: 224 24% 16%;
   --popover-border: 220 13% 88%;
   --primary: 217 91% 60%;
   --primary-foreground: 0 0% 100%;
   --secondary: 220 14% 96%;
-  --secondary-foreground: 222 47% 11%;
+  --secondary-foreground: 224 24% 16%;
   --muted: 220 14% 96%;
   --muted-foreground: 220 9% 46%;
   --accent: 220 14% 94%;
-  --accent-foreground: 222 47% 11%;
+  --accent-foreground: 224 24% 16%;
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
-  --input: 220 13% 90%;
+  --input: 220 13% 91%;
   --ring: 217 91% 60%;
   --chart-1: 217 91% 60%;
   --chart-2: 160 84% 39%;
@@ -181,12 +181,19 @@
   --chart-5: 349 77% 56%;
 
   /* Light mode extras */
-  --glass-bg: rgba(255, 255, 255, 0.8);
-  --glass-border: rgba(0, 0, 0, 0.08);
-  --glow-primary: 0 0 30px hsl(217 91% 60% / 0.2);
-  --glow-success: 0 0 20px hsl(160 84% 39% / 0.2);
-  --glow-warning: 0 0 20px hsl(38 92% 50% / 0.2);
-  --glow-danger: 0 0 20px hsl(0 72% 51% / 0.2);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --glow-primary: none;
+  --glow-success: none;
+  --glow-warning: none;
+  --glow-danger: none;
+
+  --shadow-2xs: 0px 1px 2px 0px rgba(0,0,0,0.04);
+  --shadow-xs: 0px 1px 3px 0px rgba(0,0,0,0.06);
+  --shadow-sm: 0px 1px 3px 0px rgba(0,0,0,0.06), 0px 1px 2px -1px rgba(0,0,0,0.04);
+  --shadow: 0px 4px 6px -1px rgba(0,0,0,0.06), 0px 2px 4px -1px rgba(0,0,0,0.04);
+  --shadow-md: 0px 10px 15px -3px rgba(0,0,0,0.06), 0px 4px 6px -2px rgba(0,0,0,0.03);
+  --shadow-lg: 0px 20px 25px -5px rgba(0,0,0,0.06), 0px 10px 10px -5px rgba(0,0,0,0.03);
 }
 
 @layer utilities {

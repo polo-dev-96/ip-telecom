@@ -1,9 +1,9 @@
 import type { DashboardState } from "@/hooks/useDashboard";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import {
-  CheckCircle2, Clock, Hourglass, TrendingUp, TrendingDown, CalendarDays, CalendarRange
+  CheckCircle2, Clock, Hourglass, CalendarDays, CalendarRange
 } from "lucide-react";
-import { fmtMinutes, fmtPct, fmtNumber } from "@/lib/utils/formatters";
+import { fmtMinutes, fmtNumber } from "@/lib/utils/formatters";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   LineChart, Line, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartTooltip,
@@ -22,6 +22,17 @@ const CHART_COLORS = {
   accent: "hsl(var(--chart-4))",
 };
 
+const tooltipStyle = {
+  contentStyle: {
+    background: "hsl(var(--card))",
+    border: "1px solid hsl(var(--border))",
+    borderRadius: 12,
+    fontSize: 12,
+    boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+  },
+  labelStyle: { color: "hsl(var(--muted-foreground))", fontSize: 11, fontWeight: 600 },
+};
+
 export function Overview({ dashboard }: OverviewProps) {
   const { executiveSummary: s, dailyTimeSeries, channelMetrics, queueMetrics, hourlyPeaks } = dashboard;
 
@@ -35,227 +46,157 @@ export function Overview({ dashboard }: OverviewProps) {
     total: c.total,
   }));
 
-  // Use all daily data from the filtered period (respects date filter)
   const dailyData = dailyTimeSeries;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary))]" />
-            Visão Geral
-          </h1>
-          <p className="text-sm text-muted-foreground/70 mt-1">Resumo executivo — atendimentos no período</p>
-        </div>
+      {/* Page header */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Visão Geral</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">Resumo executivo — atendimentos no período</p>
       </div>
 
-      {/* KPI cards - Row 1 */}
-      <div className="flex flex-wrap justify-center gap-4">
+      {/* KPI cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <MetricCard
-          title="Total de Atendimentos no Período"
+          title="Total de Atendimentos"
           value={fmtNumber(s.totalClosed)}
           trend={s.variationPct}
-          icon={<CheckCircle2 size={18} />}
+          icon={<CheckCircle2 size={20} />}
           tooltip="Total de atendimentos finalizados no período selecionado"
         />
         <MetricCard
           title="TMA"
           value={fmtMinutes(s.tmaMean)}
-          icon={<Clock size={18} />}
+          icon={<Clock size={20} />}
           tooltip="Tempo Médio de Atendimento — duração média do atendimento pelo agente"
           color="primary"
         />
         <MetricCard
           title="TME"
           value={fmtMinutes(s.tmeMean)}
-          icon={<Hourglass size={18} />}
+          icon={<Hourglass size={20} />}
           tooltip="Tempo Médio de Espera — tempo médio até a primeira resposta"
           color="warning"
         />
-      </div>
-
-      {/* KPI cards - Row 2 */}
-      <div className="flex flex-wrap justify-center gap-4">
         <MetricCard
-          title="Média de Atendimentos/Dia"
+          title="Média / Dia"
           value={fmtNumber(Math.round(s.avgPerDay))}
-          icon={<CalendarDays size={18} />}
+          icon={<CalendarDays size={20} />}
           tooltip="Média de atendimentos finalizados por dia no período"
+          color="purple"
         />
         <MetricCard
-          title="Média de Atendimentos/Mês"
+          title="Média / Mês"
           value={fmtNumber(Math.round(s.avgPerMonth))}
-          icon={<CalendarRange size={18} />}
+          icon={<CalendarRange size={20} />}
           tooltip="Média de atendimentos finalizados por mês no período"
+          color="success"
         />
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* By Queue - First position */}
-        <Card className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] to-white/[0.02] shadow-lg">
-          <div className="absolute inset-0 bg-gradient-to-br from-chart-3/5 via-transparent to-chart-5/5 pointer-events-none" />
-          <CardHeader className="relative pb-3">
-            <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
-              Atendimentos Finalizados por Fila
+      {/* Charts row */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+        {/* By Queue */}
+        <Card className="rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
+          <CardHeader className="pb-2 space-y-0">
+            <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2 text-foreground">
+              <span className="w-2 h-2 rounded-full bg-destructive" />
+              Atendimentos por Fila
             </CardTitle>
-            <p className="text-xs text-foreground/70 font-medium">Top 10 filas por volume de atendimentos</p>
+            <p className="text-xs text-muted-foreground">Top 10 filas por volume</p>
           </CardHeader>
-          <CardContent className="relative">
-            <ResponsiveContainer width="100%" height={Math.max(300, queueData.length * 50)}>
-              <BarChart data={queueData} barSize={36} layout="vertical" margin={{ top: 5, right: 40, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} axisLine={false} tickLine={false} />
+          <CardContent className="pt-2">
+            <ResponsiveContainer width="100%" height={Math.max(280, queueData.length * 48)}>
+              <BarChart data={queueData} barSize={28} layout="vertical" margin={{ top: 5, right: 40, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
                 <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} axisLine={false} tickLine={false} width={120} />
-                <RechartTooltip
-                  cursor={{ fill: "rgba(255, 255, 255, 0.03)" }}
-                  contentStyle={{
-                    background: "rgba(17, 24, 39, 0.95)",
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
-                    borderRadius: 12,
-                    fontSize: 12,
-                    backdropFilter: "blur(8px)",
-                    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)"
-                  }}
-                  labelStyle={{ color: "#9ca3af", fontSize: 11 }}
-                  itemStyle={{ color: "#ef4444", fontWeight: 500 }}
-                />
-                <Bar dataKey="total" name="Atendimentos" fill="url(#queueGradient)" radius={[0, 6, 6, 0]}>
-                  <LabelList dataKey="total" position="right" className="fill-foreground text-[10px] font-medium" />
+                <RechartTooltip {...tooltipStyle} />
+                <Bar dataKey="total" name="Atendimentos" fill="hsl(var(--destructive))" radius={[0, 6, 6, 0]} fillOpacity={0.85}>
+                  <LabelList dataKey="total" position="right" className="fill-foreground text-[10px] font-semibold" />
                 </Bar>
-                <defs>
-                  <linearGradient id="queueGradient" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="hsl(var(--destructive))" stopOpacity={0.8} />
-                    <stop offset="100%" stopColor="hsl(var(--destructive))" stopOpacity={1} />
-                  </linearGradient>
-                </defs>
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* By channel */}
-        <Card className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] to-white/[0.02] shadow-lg">
-          <div className="absolute inset-0 bg-gradient-to-br from-chart-2/5 via-transparent to-chart-3/5 pointer-events-none" />
-          <CardHeader className="relative pb-3">
-            <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-chart-2 shadow-[0_0_8px_hsl(var(--chart-2))]" />
-              Atendimentos Finalizados por Canal
+        {/* By Channel */}
+        <Card className="rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
+          <CardHeader className="pb-2 space-y-0">
+            <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2 text-foreground">
+              <span className="w-2 h-2 rounded-full bg-chart-2" />
+              Atendimentos por Canal
             </CardTitle>
-            <p className="text-xs text-foreground/70 font-medium">Distribuição por canal de atendimento</p>
+            <p className="text-xs text-muted-foreground">Distribuição por canal de atendimento</p>
           </CardHeader>
-          <CardContent className="relative">
-            <ResponsiveContainer width="100%" height={Math.max(300, channelData.length * 50)}>
+          <CardContent className="pt-2">
+            <ResponsiveContainer width="100%" height={300}>
               <BarChart data={channelData} barSize={48} margin={{ top: 25, right: 10, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} axisLine={false} tickLine={false} />
-                <RechartTooltip
-                  cursor={{ fill: "rgba(255, 255, 255, 0.03)" }}
-                  contentStyle={{
-                    background: "rgba(17, 24, 39, 0.95)",
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
-                    borderRadius: 12,
-                    fontSize: 12,
-                    backdropFilter: "blur(8px)",
-                    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)"
-                  }}
-                  labelStyle={{ color: "#9ca3af", fontSize: 11 }}
-                  itemStyle={{ color: "#10b981", fontWeight: 500 }}
-                />
-                <Bar dataKey="total" name="Total" fill="url(#channelGradient)" radius={[6, 6, 0, 0]}>
-                  <LabelList dataKey="total" position="top" className="fill-foreground text-[10px] font-medium" />
+                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                <RechartTooltip {...tooltipStyle} />
+                <Bar dataKey="total" name="Total" fill={CHART_COLORS.secondary} radius={[6, 6, 0, 0]} fillOpacity={0.85}>
+                  <LabelList dataKey="total" position="top" className="fill-foreground text-[10px] font-semibold" />
                 </Bar>
-                <defs>
-                  <linearGradient id="channelGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={CHART_COLORS.secondary} stopOpacity={1} />
-                    <stop offset="100%" stopColor={CHART_COLORS.secondary} stopOpacity={0.6} />
-                  </linearGradient>
-                </defs>
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Daily volume - Moved to bottom, full width and taller */}
-        <Card className="xl:col-span-2 relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] to-white/[0.02] shadow-lg">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5 pointer-events-none" />
-          <CardHeader className="relative pb-3">
-            <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))]" />
-              Atendimentos Finalizados por Dia
+        {/* Daily volume */}
+        <Card className="xl:col-span-2 rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
+          <CardHeader className="pb-2 space-y-0">
+            <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2 text-foreground">
+              <span className="w-2 h-2 rounded-full bg-primary" />
+              Volume Diário
             </CardTitle>
-            <p className="text-xs text-foreground/70 font-medium">Período selecionado</p>
+            <p className="text-xs text-muted-foreground">Atendimentos finalizados por dia no período</p>
           </CardHeader>
-          <CardContent className="relative">
-            <ResponsiveContainer width="100%" height={320}>
+          <CardContent className="pt-2">
+            <ResponsiveContainer width="100%" height={300}>
               <LineChart data={dailyData}>
                 <defs>
                   <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.3} />
+                    <stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.2} />
                     <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" vertical={false} />
-                <XAxis dataKey="date" tickFormatter={fmtShortDate} tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} axisLine={false} tickLine={false} />
-                <RechartTooltip
-                  contentStyle={{
-                    background: "rgba(17, 24, 39, 0.95)",
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
-                    borderRadius: 12,
-                    fontSize: 12,
-                    backdropFilter: "blur(8px)",
-                    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)"
-                  }}
-                  labelStyle={{ color: "#9ca3af", fontSize: 11 }}
-                  itemStyle={{ color: "#60a5fa", fontWeight: 500 }}
-                  labelFormatter={(l) => `Data: ${l}`}
-                />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="date" tickFormatter={fmtShortDate} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                <RechartTooltip {...tooltipStyle} labelFormatter={(l) => `Data: ${l}`} />
                 <Area type="monotone" dataKey="value" name="Finalizados" stroke="none" fill="url(#lineGradient)" />
-                <Line type="monotone" dataKey="value" name="Finalizados" stroke={CHART_COLORS.primary} strokeWidth={3} dot={false} activeDot={{ r: 5, strokeWidth: 0, fill: CHART_COLORS.primary }} />
+                <Line type="monotone" dataKey="value" name="Finalizados" stroke={CHART_COLORS.primary} strokeWidth={2.5} dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: CHART_COLORS.primary, fill: "hsl(var(--card))" }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
         {/* Hourly peaks */}
-        <Card className="xl:col-span-2 relative overflow-hidden rounded-xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] to-white/[0.02] shadow-lg">
-          <div className="absolute inset-0 bg-gradient-to-br from-chart-4/5 via-transparent to-chart-5/5 pointer-events-none" />
-          <CardHeader className="relative pb-3">
-            <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-chart-4 shadow-[0_0_8px_hsl(var(--chart-4))]" />
+        <Card className="xl:col-span-2 rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
+          <CardHeader className="pb-2 space-y-0">
+            <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2 text-foreground">
+              <span className="w-2 h-2 rounded-full bg-chart-4" />
               Picos de Atendimentos
             </CardTitle>
-            <p className="text-xs text-foreground/70 font-medium">Distribuição por hora do dia</p>
+            <p className="text-xs text-muted-foreground">Distribuição por hora do dia</p>
           </CardHeader>
-          <CardContent className="relative">
-            <ResponsiveContainer width="100%" height={240}>
+          <CardContent className="pt-2">
+            <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={hourlyPeaks}>
                 <defs>
                   <linearGradient id="peakGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={CHART_COLORS.accent} stopOpacity={0.4} />
+                    <stop offset="5%" stopColor={CHART_COLORS.accent} stopOpacity={0.3} />
                     <stop offset="95%" stopColor={CHART_COLORS.accent} stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" vertical={false} />
-                <XAxis dataKey="hour" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} axisLine={false} tickLine={false} />
-                <RechartTooltip
-                  contentStyle={{
-                    background: "rgba(17, 24, 39, 0.95)",
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
-                    borderRadius: 12,
-                    fontSize: 12,
-                    backdropFilter: "blur(8px)",
-                    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)"
-                  }}
-                  labelStyle={{ color: "#9ca3af", fontSize: 11 }}
-                  itemStyle={{ color: "#f59e0b", fontWeight: 500 }}
-                  labelFormatter={(l) => `Horário: ${l}`}
-                />
-                <Area type="monotone" dataKey="total" name="Atendimentos" stroke={CHART_COLORS.accent} strokeWidth={3} fill="url(#peakGradient)" activeDot={{ r: 6, strokeWidth: 0, fill: CHART_COLORS.accent }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="hour" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                <RechartTooltip {...tooltipStyle} labelFormatter={(l) => `Horário: ${l}`} />
+                <Area type="monotone" dataKey="total" name="Atendimentos" stroke={CHART_COLORS.accent} strokeWidth={2.5} fill="url(#peakGradient)" activeDot={{ r: 5, strokeWidth: 2, stroke: CHART_COLORS.accent, fill: "hsl(var(--card))" }} />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>

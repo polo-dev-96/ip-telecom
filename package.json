@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "pnpm --filter @workspace/atendimento-dashboard run dev",
+    "dev:all": "concurrently \"cd artifacts/atendimento-dashboard/server && node index.js\" \"cd artifacts/atendimento-dashboard && npm run dev\" --names \"BACKEND,FRONTEND\" --prefix-colors \"blue,green\"",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
