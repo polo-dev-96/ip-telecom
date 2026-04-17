@@ -1,6 +1,7 @@
 const express = require("express");
 const mysql = require("mysql2/promise");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 app.use(cors());
@@ -316,6 +317,16 @@ app.get("/api/filters", async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Serve frontend (unified mode) ─────────────────────────────
+app.use(express.static(path.join(__dirname, "public")));
+
+// SPA fallback - qualquer rota não-API vai para o frontend
+app.get("*", (req, res) => {
+  if (!req.path.startsWith("/api")) {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
   }
 });
 
