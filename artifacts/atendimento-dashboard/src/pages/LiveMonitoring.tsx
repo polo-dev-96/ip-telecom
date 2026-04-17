@@ -54,6 +54,7 @@ export function LiveMonitoring() {
 
   const [queueMap, setQueueMap] = useState<Map<string, string>>(new Map());
   const [agentMap, setAgentMap] = useState<Map<string, string>>(new Map());
+  const [agentQueueMap, setAgentQueueMap] = useState<Map<string, string>>(new Map());
 
   // Use refs so loadData doesn't change when maps update
   const queueMapRef = useRef(queueMap);
@@ -70,6 +71,20 @@ export function LiveMonitoring() {
         const am = new Map(aList.map((a) => [a.id, a.name]));
         setQueueMap(qm);
         setAgentMap(am);
+
+        // Build agent name → queue name map (prioritize 8000-range queues)
+        const aqm = new Map<string, string>();
+        for (const agent of aList) {
+          if (agent.queues && agent.queues.length > 0) {
+            const teamQueue = agent.queues.find((q) => q.queue && q.queue.startsWith("8"));
+            const bestQueue = teamQueue || agent.queues[0];
+            const queueName = qm.get(bestQueue.queue) || bestQueue.queue;
+            aqm.set(agent.name, queueName);
+            aqm.set(agent.id, queueName);
+          }
+        }
+        console.debug("[LiveMonitoring] agentQueueMap built:", aqm.size, "entries", Object.fromEntries(aqm));
+        setAgentQueueMap(aqm);
       } catch (err) {
         console.warn("Erro ao carregar listas de filas/agentes:", err);
       }
@@ -151,14 +166,17 @@ export function LiveMonitoring() {
 
   // Agent breakdown — ONLY phase === "agente"
   const agentBreakdown = useMemo(() => {
-    const counts: Record<string, { name: string; total: number }> = {};
+    const counts: Record<string, { name: string; total: number; queue: string }> = {};
     for (const a of withAgent) {
       const agentName = a.dstName || a.dst;
-      if (!counts[agentName]) counts[agentName] = { name: agentName, total: 0 };
+      if (!counts[agentName]) {
+        const queue = agentQueueMap.get(agentName) || agentQueueMap.get(a.dst) || "";
+        counts[agentName] = { name: agentName, total: 0, queue };
+      }
       counts[agentName].total++;
     }
     return Object.values(counts).sort((a, b) => b.total - a.total);
-  }, [withAgent]);
+  }, [withAgent, agentQueueMap]);
 
   const agentAttendances = useMemo(() => {
     if (!selectedAgent) return [];
@@ -595,7 +613,11 @@ export function LiveMonitoring() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold">{ag.name}</p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">atendimentos</p>
+                      {ag.queue ? (
+                        <p className="text-[10px] text-muted-foreground">{ag.queue}</p>
+                      ) : (
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">atendimentos</p>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -612,12 +634,17 @@ export function LiveMonitoring() {
       {/* ═══ TAB: Agentes → Detalhe de um agente selecionado ═══ */}
       {subTab === "agentes" && selectedAgent && (
         <>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <Button variant="ghost" size="sm" onClick={() => setSelectedAgent(null)} className="h-8 gap-1.5 text-xs">
               ← Voltar
             </Button>
             <h2 className="text-lg font-bold">{selectedAgent}</h2>
             <Badge variant="outline" className="text-xs">{agentAttendances.length} atendimento{agentAttendances.length !== 1 ? "s" : ""}</Badge>
+            {(agentQueueMap.get(selectedAgent) || agentQueueMap.get(agentAttendances[0]?.dst)) && (
+              <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-primary/10 text-primary border-primary/20">
+                {agentQueueMap.get(selectedAgent) || agentQueueMap.get(agentAttendances[0]?.dst)}
+              </Badge>
+            )}
           </div>
           <Card className="rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
             <CardContent className="p-0">
@@ -648,11 +675,26 @@ export function LiveMonitoring() {
                         </div>
                       </div>
                       <div className="hidden sm:flex flex-col items-end gap-1 min-w-[160px]">
-                        <span className="text-[10px] text-muted-foreground/50 font-mono uppercase tracking-wider">Agente</span>
-                        <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                          <Headphones size={12} />
-                          {a.dstName}
-                        </span>
+                        {(() => {
+                          const agentQueue = agentQueueMap.get(a.dstName) || agentQueueMap.get(a.dst) || "";
+                          return agentQueue ? (
+                            <>
+                              <span className="text-[10px] text-muted-foreground/50 font-mono uppercase tracking-wider">{agentQueue}</span>
+                              <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                                <Headphones size={12} />
+                                {a.dstName}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-[10px] text-muted-foreground/50 font-mono uppercase tracking-wider">Agente</span>
+                              <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                                <Headphones size={12} />
+                                {a.dstName}
+                              </span>
+                            </>
+                          );
+                        })()}
                       </div>
                       <div className="flex flex-col items-end gap-0.5 shrink-0 min-w-[90px]">
                         <div className="flex items-center gap-1.5 text-xs font-mono">

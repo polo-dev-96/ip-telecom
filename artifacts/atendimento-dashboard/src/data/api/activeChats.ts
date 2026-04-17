@@ -84,6 +84,7 @@ export interface QueueInfo {
 export interface AgentInfo {
   id: string;
   name: string;
+  queues?: { queue: string; priority?: string }[];
 }
 
 function dictToArray(obj: unknown): { _key: string; [k: string]: unknown }[] {
@@ -122,8 +123,29 @@ export async function fetchQueues(): Promise<QueueInfo[]> {
   if (!res.ok) throw new Error(`Queue API retornou status ${res.status}`);
   const data = await res.json();
   console.debug("[fetchQueues] raw:", data);
+
+  // Try direct extraction from known structure: data.queuelist.queues
+  let queuesDict: Record<string, any> | null = null;
+  if (data?.queuelist?.queues && typeof data.queuelist.queues === "object") {
+    queuesDict = data.queuelist.queues;
+  }
+
+  if (queuesDict) {
+    const result: QueueInfo[] = [];
+    for (const [key, queue] of Object.entries(queuesDict)) {
+      if (!queue || typeof queue !== "object") continue;
+      const q = queue as Record<string, unknown>;
+      const id = String(q.queue ?? key ?? "");
+      const name = String(q.name ?? q.description ?? key ?? "");
+      if (id) result.push({ id, name });
+    }
+    console.debug("[fetchQueues] direct extraction:", result.length, "queues, sample:", result.slice(0, 3));
+    return result;
+  }
+
+  // Fallback
   const list = findItemDict(data, "queues", "data", "queue");
-  console.debug("[fetchQueues] items:", list);
+  console.debug("[fetchQueues] fallback items:", list);
   return list
     .map((q) => ({
       id: String(q.queue ?? q._key ?? q.id ?? q.number ?? ""),
@@ -138,12 +160,36 @@ export async function fetchAgents(): Promise<AgentInfo[]> {
   if (!res.ok) throw new Error(`Agent API retornou status ${res.status}`);
   const data = await res.json();
   console.debug("[fetchAgents] raw:", data);
+
+  // Try to get agents dict directly from known structure: data.agentlist.agents
+  let agentsDict: Record<string, any> | null = null;
+  if (data?.agentlist?.agents && typeof data.agentlist.agents === "object") {
+    agentsDict = data.agentlist.agents;
+  }
+
+  if (agentsDict) {
+    // Direct extraction preserving queues array
+    const result: AgentInfo[] = [];
+    for (const [key, agent] of Object.entries(agentsDict)) {
+      if (!agent || typeof agent !== "object") continue;
+      const a = agent as Record<string, unknown>;
+      const id = String(a.agentid ?? a.agent_id ?? key ?? "");
+      const name = String(a.name ?? a.agent_name ?? key ?? "");
+      const queues = Array.isArray(a.queues) ? (a.queues as { queue: string; priority?: string }[]) : undefined;
+      if (id) result.push({ id, name, queues });
+    }
+    console.debug("[fetchAgents] direct extraction:", result.length, "agents, sample queues:", result[0]?.queues);
+    return result;
+  }
+
+  // Fallback to generic extraction
   const list = findItemDict(data, "agents", "data", "agent");
-  console.debug("[fetchAgents] items:", list);
+  console.debug("[fetchAgents] fallback items:", list);
   return list
     .map((a) => ({
       id: String(a.agentid ?? a.agent_id ?? a._key ?? a.id ?? a.number ?? ""),
       name: String(a.name ?? a.agent_name ?? a._key ?? ""),
+      queues: Array.isArray(a.queues) ? (a.queues as { queue: string; priority?: string }[]) : undefined,
     }))
     .filter((a) => a.id);
 }

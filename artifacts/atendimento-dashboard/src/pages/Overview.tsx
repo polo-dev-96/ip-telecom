@@ -34,7 +34,7 @@ const tooltipStyle = {
 };
 
 export function Overview({ dashboard }: OverviewProps) {
-  const { executiveSummary: s, dailyTimeSeries, channelMetrics, queueMetrics, hourlyPeaks } = dashboard;
+  const { executiveSummary: s, dailyTimeSeries, channelMetrics, queueMetrics, agentMetrics, hourlyPeaks } = dashboard;
 
   const queueData = queueMetrics.slice(0, 10).map((q) => ({
     name: q.queue,
@@ -44,6 +44,11 @@ export function Overview({ dashboard }: OverviewProps) {
   const channelData = channelMetrics.map((c) => ({
     name: c.channel,
     total: c.total,
+  }));
+
+  const agentData = agentMetrics.slice(0, 10).map((a) => ({
+    name: a.agentName,
+    total: a.total,
   }));
 
   const dailyData = dailyTimeSeries;
@@ -139,6 +144,30 @@ export function Overview({ dashboard }: OverviewProps) {
                 <RechartTooltip {...tooltipStyle} />
                 <Bar dataKey="total" name="Total" fill={CHART_COLORS.secondary} radius={[6, 6, 0, 0]} fillOpacity={0.85}>
                   <LabelList dataKey="total" position="top" className="fill-foreground text-[10px] font-semibold" />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Top 10 Agents */}
+        <Card className="xl:col-span-2 rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
+          <CardHeader className="pb-2 space-y-0">
+            <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2 text-foreground">
+              <span className="w-2 h-2 rounded-full bg-chart-1" />
+              Volume por Agente
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">Top 10 agentes por quantidade de atendimentos</p>
+          </CardHeader>
+          <CardContent className="pt-2">
+            <ResponsiveContainer width="100%" height={Math.max(280, agentData.length * 40)}>
+              <BarChart data={agentData} barSize={28} layout="vertical" margin={{ top: 5, right: 40, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} axisLine={false} tickLine={false} width={130} />
+                <RechartTooltip {...tooltipStyle} />
+                <Bar dataKey="total" name="Atendimentos" fill={CHART_COLORS.primary} radius={[0, 6, 6, 0]} fillOpacity={0.85}>
+                  <LabelList dataKey="total" position="right" className="fill-foreground text-[10px] font-semibold" />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
