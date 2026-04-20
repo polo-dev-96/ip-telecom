@@ -1,6 +1,6 @@
 import type { ClosedAttendance, Agent, Queue, Channel, ResolutionType, Sentiment, AttendanceStatus } from "@/lib/types";
 
-const CHANNELS: Channel[] = ["WhatsApp", "Instagram", "Webchat", "Email", "Telegram"];
+const CHANNELS: Channel[] = ["WhatsApp", "Instagram", "Webchat", "Email", "Telegram", "Facebook"];
 
 const AGENTS: Agent[] = [
   { id: "ag1", name: "Ana Souza", team: "Suporte N1", avatar: "AS" },
@@ -76,13 +76,14 @@ function fmt(date: Date): string {
   return date.toISOString();
 }
 
-const CHANNEL_WEIGHTS = [40, 15, 20, 15, 10];
+const CHANNEL_WEIGHTS = [35, 15, 20, 15, 10, 5];
 const CHANNEL_TTR_BASE: Record<Channel, [number, number]> = {
   WhatsApp: [15, 180],
   Instagram: [20, 240],
   Webchat: [5, 90],
   Email: [60, 720],
   Telegram: [10, 120],
+  Facebook: [20, 240],
 };
 const CHANNEL_SLA: Record<Channel, number> = {
   WhatsApp: 120,
@@ -90,6 +91,7 @@ const CHANNEL_SLA: Record<Channel, number> = {
   Webchat: 60,
   Email: 480,
   Telegram: 90,
+  Facebook: 180,
 };
 
 function generateAttendance(index: number): ClosedAttendance {
