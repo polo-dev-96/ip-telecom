@@ -7,6 +7,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ─── Forward /api/utech/* → external UTech API ──────────────
+app.use("/api/utech", async (req, res) => {
+  const target = "https://ipfibra.ippolopabx.com.br/utech" + req.url;
+  try {
+    const resp = await fetch(target, {
+      method: req.method,
+      headers: { "Content-Type": "application/json" },
+    });
+    const data = await resp.text();
+    res.status(resp.status).set("Content-Type", resp.headers.get("content-type") || "application/json").send(data);
+  } catch (err) {
+    console.error("UTech proxy error:", err.message);
+    res.status(502).json({ error: "Erro ao conectar com API UTech", detail: err.message });
+  }
+});
+
 // ─── Database config ───────────────────────────────────────────
 const DB_CONFIG = {
   host: process.env.DB_HOST || "54.232.95.241",
