@@ -5,9 +5,9 @@ import type { ClosedAttendance } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Clock, User, MessageSquare, CheckCircle2, Star, Bot, Tag, Loader2 } from "lucide-react";
+import { ArrowLeft, Clock, User, MessageSquare, CheckCircle2, Bot, Tag, Loader2 } from "lucide-react";
 import { fmtDateTime, fmtMinutes, fmtSeconds } from "@/lib/utils/formatters";
-import { SlaBadge, CsatBadge, ChannelBadge, ResolutionBadge, SentimentBadge, StatusBadge } from "@/components/dashboard/StatusBadge";
+import { ChannelBadge, StatusBadge } from "@/components/dashboard/StatusBadge";
 
 async function fetchAttendanceById(id: string): Promise<ClosedAttendance | null> {
   const res = await fetch(`/api/attendances?id=${id}`);
@@ -52,7 +52,6 @@ export function AttendanceDetail() {
     { label: "Abertura", time: a.openedAt, icon: MessageSquare as IconComponent },
     a.firstResponseAt ? { label: "1ª Resposta", time: a.firstResponseAt, icon: Clock as IconComponent } : null,
     a.botEscalatedAt ? { label: "Escalonamento Bot", time: a.botEscalatedAt, icon: Bot as IconComponent } : null,
-    a.firstHumanResponseAt ? { label: "1ª Resposta Humana", time: a.firstHumanResponseAt, icon: User as IconComponent } : null,
     { label: "Encerramento", time: a.closedAt, icon: CheckCircle2 as IconComponent },
   ].filter(Boolean) as { label: string; time: string; icon: IconComponent }[];
 
@@ -77,10 +76,7 @@ export function AttendanceDetail() {
           <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><MessageSquare size={14} />Informações Gerais</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
             <Row label="Canal" value={<ChannelBadge channel={a.channel} />} />
-            <Row label="Resolução" value={<ResolutionBadge type={a.resolutionType} />} />
-            <Row label="Sentimento" value={<SentimentBadge sentiment={a.sentiment} />} />
             <Row label="Fila" value={a.queue} />
-            <Row label="Equipe" value={a.team} />
             <Row label="Tipo de Ocorrência" value={a.issueType} />
             {a.campaignSource && <Row label="Origem da Campanha" value={<Badge variant="secondary" className="text-xs">{a.campaignSource}</Badge>} />}
             <Row label="Cliente" value={<span className="font-mono text-muted-foreground">{a.customerNameMasked} ({a.customerIdMasked})</span>} />
@@ -93,13 +89,6 @@ export function AttendanceDetail() {
           <CardContent className="space-y-3 text-sm">
             <Row label="Nome" value={a.agentName ?? <span className="italic text-muted-foreground">Somente Bot</span>} />
             <Row label="ID do Agente" value={<span className="font-mono text-xs text-muted-foreground">{a.agentId ?? "—"}</span>} />
-            <Row label="Transferências" value={<Badge variant="outline" className="text-xs">{a.transferCount}</Badge>} />
-            <Row label="ACW" value={fmtSeconds(a.acwSeconds)} />
-            <Row label="Registro Completo" value={
-              <Badge variant="outline" className={a.complianceRecordComplete ? "border-emerald-500 text-emerald-700 dark:text-emerald-400 text-xs" : "border-red-500 text-red-700 dark:text-red-400 text-xs"}>
-                {a.complianceRecordComplete ? "Sim" : "Pendente"}
-              </Badge>
-            } />
           </CardContent>
         </Card>
 
@@ -112,29 +101,9 @@ export function AttendanceDetail() {
             <Row label="TMA" value={<span className="font-semibold">{fmtMinutes(Math.max(a.ttrMinutes - (a.frtMinutes ?? 0), 0))}</span>} />
             {a.frtMinutes && <Row label="TME" value={fmtMinutes(a.frtMinutes)} />}
             {a.handoffSeconds && <Row label="Handoff Bot→Humano" value={fmtSeconds(a.handoffSeconds)} />}
-            <Row label="SLA Alvo" value={fmtMinutes(a.slaResolutionTargetMinutes)} />
-            <Row label="SLA" value={<SlaBadge within={a.withinResolutionSla} />} />
           </CardContent>
         </Card>
 
-        {/* Quality */}
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Star size={14} />Qualidade e Satisfação</CardTitle></CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <Row label="CSAT" value={<CsatBadge score={a.csatScore} />} />
-            <Row label="NPS" value={a.npsScore !== null ? <span className="font-semibold">{a.npsScore}/10</span> : <span className="text-muted-foreground text-xs">Sem resposta</span>} />
-            <Row label="FCR" value={
-              <Badge variant="outline" className={a.resolvedFirstContact ? "border-emerald-500 text-emerald-700 dark:text-emerald-400 text-xs" : "border-red-500 text-red-700 dark:text-red-400 text-xs"}>
-                {a.resolvedFirstContact ? "Sim" : "Não"}
-              </Badge>
-            } />
-            <Row label="Reabertura (7d)" value={
-              <Badge variant="outline" className={!a.reopenedWithin7Days ? "border-emerald-500 text-emerald-700 dark:text-emerald-400 text-xs" : "border-red-500 text-red-700 dark:text-red-400 text-xs"}>
-                {a.reopenedWithin7Days ? "Sim" : "Não"}
-              </Badge>
-            } />
-          </CardContent>
-        </Card>
       </div>
 
       {/* Tags */}

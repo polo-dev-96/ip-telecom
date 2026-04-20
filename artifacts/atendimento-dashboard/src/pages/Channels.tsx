@@ -27,7 +27,7 @@ export function Channels({ dashboard }: ChannelsProps) {
   const { channelMetrics } = dashboard;
 
   const volumeData = channelMetrics.map((c) => ({ name: c.channel, total: c.total }));
-  const slaData = channelMetrics.map((c) => ({ name: c.channel, sla: Math.round(c.slaCompliancePct) }));
+
 
   return (
     <div className="space-y-6">
@@ -36,7 +36,7 @@ export function Channels({ dashboard }: ChannelsProps) {
         <p className="text-sm text-muted-foreground mt-0.5">Comparativo de performance entre canais</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 gap-5">
         <Card className="rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
           <CardHeader className="pb-2 space-y-0">
             <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2 text-foreground">
@@ -53,28 +53,6 @@ export function Channels({ dashboard }: ChannelsProps) {
                 <RechartTooltip {...tooltipStyle} />
                 <Bar dataKey="total" name="Atendimentos" fill="hsl(var(--chart-1))" radius={[6, 6, 0, 0]} fillOpacity={0.85}>
                   <LabelList dataKey="total" position="top" className="fill-foreground text-[10px] font-semibold" />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-2xl border-border/50 dark:border-white/[0.06] shadow-sm">
-          <CardHeader className="pb-2 space-y-0">
-            <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2 text-foreground">
-              <span className="w-2 h-2 rounded-full bg-chart-2" />
-              SLA de Resolução por Canal
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-2">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={slaData} margin={{ top: 25, right: 10, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 500 }} axisLine={false} tickLine={false} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                <RechartTooltip {...tooltipStyle} />
-                <Bar dataKey="sla" name="SLA %" fill="hsl(var(--chart-2))" radius={[6, 6, 0, 0]} fillOpacity={0.85}>
-                  <LabelList dataKey="sla" position="top" className="fill-foreground text-[10px] font-semibold" formatter={(v: number) => `${v}%`} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
