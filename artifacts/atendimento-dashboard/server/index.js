@@ -511,12 +511,12 @@ app.get("/api/filters", authMiddleware, async (req, res) => {
 });
 
 // ─── Serve frontend (unified mode) ─────────────────────────────
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "../dist/public")));
 
 // SPA fallback - qualquer rota não-API vai para o frontend
 app.get("*", (req, res) => {
   if (!req.path.startsWith("/api")) {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
+    res.sendFile(path.join(__dirname, "../dist/public", "index.html"));
   }
 });
 
