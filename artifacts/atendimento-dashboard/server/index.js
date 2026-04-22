@@ -2,6 +2,16 @@ const express = require("express");
 const mysql = require("mysql2/promise");
 const cors = require("cors");
 const path = require("path");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
+const JWT_SECRET = process.env.JWT_SECRET || "ip-telecom-secret-2025";
+const JWT_EXPIRES = "12h";
+const ADMIN_EMAIL = "admin@polotelecom.com.br";
+const ADMIN_PASS = "Polo@123";
+const ADMIN_NAME = "Administrador";
+
+const ALL_TABS = ["/", "/atendimentos", "/canais", "/agentes", "/acompanhamento", "/ramais"];
 
 const app = express();
 app.use(cors());
@@ -147,8 +157,49 @@ async function discoverTable() {
   }
 }
 
+async function seedAdmin() {
+  try {
+    const [rows] = await pool.query("SELECT id FROM ip_users WHERE email = ? LIMIT 1", [ADMIN_EMAIL]);
+    if (rows.length === 0) {
+      const hash = await bcrypt.hash(ADMIN_PASS, 10);
+      await pool.query(
+        "INSERT INTO ip_users (name, email, password_hash, role, active, permissions) VALUES (?, ?, ?, 'admin', 1, ?)",
+        [ADMIN_NAME, ADMIN_EMAIL, hash, JSON.stringify(ALL_TABS)]
+      );
+      console.log("✅ Admin user created:", ADMIN_EMAIL);
+    } else {
+      console.log("👤 Admin user already exists");
+    }
+  } catch (err) {
+    console.error("❌ Failed to seed admin:", err.message);
+  }
+}
+
+// ─── JWT Auth Middleware ───────────────────────────────────────
+function authMiddleware(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Token de acesso requerido" });
+  }
+  const token = authHeader.split(" ")[1];
+  try {
+    req.user = jwt.verify(token, JWT_SECRET);
+    next();
+  } catch {
+    return res.status(401).json({ error: "Token inválido ou expirado" });
+  }
+}
+
+function adminMiddleware(req, res, next) {
+  if (req.user?.role !== "admin") {
+    return res.status(403).json({ error: "Acesso restrito a administradores" });
+  }
+  next();
+}
+
 async function initialize() {
   await Promise.all([discoverTable(), loadAgentNames(), loadQueueNames()]);
+  await seedAdmin();
 }
 
 // ─── Channel name mapping ──────────────────────────────────────
@@ -232,6 +283,129 @@ function mapRow(row) {
   };
 }
 
+// ─── Auth routes ───────────────────────────────────────────────
+app.post("/api/auth/login", async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email e senha são obrigatórios" });
+  }
+  try {
+    const [rows] = await pool.query(
+      "SELECT * FROM ip_users WHERE email = ? AND active = 1 LIMIT 1",
+      [email.trim().toLowerCase()]
+    );
+    if (rows.length === 0) {
+      return res.status(401).json({ error: "Email ou senha inválidos" });
+    }
+    const user = rows[0];
+    const match = await bcrypt.compare(password, user.password_hash);
+    if (!match) {
+      return res.status(401).json({ error: "Email ou senha inválidos" });
+    }
+    let permissions = ALL_TABS;
+    if (user.permissions) {
+      try {
+        permissions = typeof user.permissions === "string"
+          ? JSON.parse(user.permissions)
+          : user.permissions;
+      } catch { permissions = ALL_TABS; }
+    }
+    const payload = { id: user.id, name: user.name, email: user.email, role: user.role, permissions };
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+    res.json({ token, user: payload });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/auth/me", authMiddleware, async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT id, name, email, role, permissions FROM ip_users WHERE id = ? AND active = 1 LIMIT 1",
+      [req.user.id]
+    );
+    if (rows.length === 0) return res.status(401).json({ error: "Usuário não encontrado" });
+    const u = rows[0];
+    let permissions = ALL_TABS;
+    if (u.permissions) {
+      try { permissions = typeof u.permissions === "string" ? JSON.parse(u.permissions) : u.permissions; } catch { permissions = ALL_TABS; }
+    }
+    res.json({ user: { id: u.id, name: u.name, email: u.email, role: u.role, permissions } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── User management (admin only) ──────────────────────────────
+app.get("/api/users", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT id, name, email, role, active, permissions, created_at FROM ip_users ORDER BY created_at DESC"
+    );
+    const users = rows.map((u) => ({
+      ...u,
+      permissions: u.permissions
+        ? (typeof u.permissions === "string" ? JSON.parse(u.permissions) : u.permissions)
+        : ALL_TABS,
+    }));
+    res.json({ users });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/users", authMiddleware, adminMiddleware, async (req, res) => {
+  const { name, email, password, permissions } = req.body;
+  if (!name || !email || !password) {
+    return res.status(400).json({ error: "Nome, email e senha são obrigatórios" });
+  }
+  try {
+    const [existing] = await pool.query("SELECT id FROM ip_users WHERE email = ? LIMIT 1", [email.trim().toLowerCase()]);
+    if (existing.length > 0) {
+      return res.status(409).json({ error: "Email já cadastrado" });
+    }
+    const hash = await bcrypt.hash(password, 10);
+    const perms = Array.isArray(permissions) && permissions.length > 0 ? permissions : ALL_TABS;
+    const [result] = await pool.query(
+      "INSERT INTO ip_users (name, email, password_hash, role, active, permissions) VALUES (?, ?, ?, 'user', 1, ?)",
+      [name.trim(), email.trim().toLowerCase(), hash, JSON.stringify(perms)]
+    );
+    res.status(201).json({ id: result.insertId, name, email, role: "user", permissions: perms });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/api/users/:id", authMiddleware, adminMiddleware, async (req, res) => {
+  const { id } = req.params;
+  const { permissions } = req.body;
+  if (!Array.isArray(permissions)) {
+    return res.status(400).json({ error: "Permissões inválidas" });
+  }
+  try {
+    await pool.query(
+      "UPDATE ip_users SET permissions = ?, updated_at = NOW() WHERE id = ?",
+      [JSON.stringify(permissions), id]
+    );
+    res.json({ success: true, permissions });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/api/users/:id", authMiddleware, adminMiddleware, async (req, res) => {
+  const { id } = req.params;
+  if (String(id) === String(req.user.id)) {
+    return res.status(400).json({ error: "Não é possível remover o próprio usuário" });
+  }
+  try {
+    await pool.query("DELETE FROM ip_users WHERE id = ?", [id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Health check ──────────────────────────────────────────────
 app.get("/api/health", async (req, res) => {
   try {
@@ -248,7 +422,7 @@ app.get("/api/health", async (req, res) => {
 });
 
 // ─── Main attendances endpoint ─────────────────────────────────
-app.get("/api/attendances", async (req, res) => {
+app.get("/api/attendances", authMiddleware, async (req, res) => {
   if (!MAIN_TABLE) {
     return res.status(503).json({ error: "Table not discovered yet" });
   }
@@ -301,7 +475,7 @@ app.get("/api/attendances", async (req, res) => {
 });
 
 // ─── Filter options (distinct values) ──────────────────────────
-app.get("/api/filters", async (req, res) => {
+app.get("/api/filters", authMiddleware, async (req, res) => {
   if (!MAIN_TABLE) {
     return res.status(503).json({ error: "Table not discovered yet" });
   }

@@ -11,12 +11,17 @@ import { Agents } from "@/pages/Agents";
 import { LiveMonitoring } from "@/pages/LiveMonitoring";
 import { Ramais } from "@/pages/Ramais";
 import { AttendanceDetail } from "@/pages/AttendanceDetail";
+import { UserManagement } from "@/pages/UserManagement";
+import { Login } from "@/pages/Login";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
+import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
 
 function DashboardLayout() {
   const dashboard = useDashboard();
+  const { user } = useAuth();
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -33,6 +38,9 @@ function DashboardLayout() {
               <Route path="/acompanhamento" component={() => <LiveMonitoring />} />
               <Route path="/ramais" component={() => <Ramais />} />
               <Route path="/atendimento/:id" component={AttendanceDetail} />
+              {user?.role === "admin" && (
+                <Route path="/usuarios" component={UserManagement} />
+              )}
               <Route>
                 <div className="flex flex-col items-center justify-center py-20 gap-2">
                   <p className="text-2xl font-bold">404</p>
@@ -47,15 +55,35 @@ function DashboardLayout() {
   );
 }
 
+function AuthGate() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#060e24]">
+        <Loader2 size={28} className="animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Login />;
+  }
+
+  return <DashboardLayout />;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <DashboardLayout />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <AuthGate />
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

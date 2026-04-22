@@ -10,7 +10,10 @@ import { fmtDateTime, fmtMinutes, fmtSeconds } from "@/lib/utils/formatters";
 import { ChannelBadge, StatusBadge } from "@/components/dashboard/StatusBadge";
 
 async function fetchAttendanceById(id: string): Promise<ClosedAttendance | null> {
-  const res = await fetch(`/api/attendances?id=${id}`);
+  const token = localStorage.getItem("ip_token");
+  const res = await fetch(`/api/attendances?id=${id}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
   if (!res.ok) return null;
   const json = await res.json();
   const data = json.data as ClosedAttendance[];

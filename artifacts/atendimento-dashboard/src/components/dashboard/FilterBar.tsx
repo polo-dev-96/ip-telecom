@@ -18,7 +18,10 @@ interface FiltersResponse {
 }
 
 async function fetchFilterOptions(): Promise<FiltersResponse> {
-  const res = await fetch("/api/filters");
+  const token = localStorage.getItem("ip_token");
+  const res = await fetch("/api/filters", {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
   if (!res.ok) return { channels: [], queues: [], agents: [] };
   return res.json();
 }

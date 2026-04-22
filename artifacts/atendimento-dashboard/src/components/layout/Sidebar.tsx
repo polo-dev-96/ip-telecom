@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 const NAV_ITEMS = [
   { path: "/", label: "Visão Geral", icon: LayoutDashboard },
@@ -24,6 +25,10 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const { user } = useAuth();
+  const visibleNav = NAV_ITEMS.filter((item) =>
+    user?.role === "admin" || user?.permissions?.includes(item.path)
+  );
 
   return (
     <aside
@@ -57,7 +62,7 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="relative flex-1 py-4 px-2.5 space-y-0.5">
-        {NAV_ITEMS.map(({ path, label, icon: Icon, highlight }) => (
+        {visibleNav.map(({ path, label, icon: Icon, highlight }) => (
           <NavLink
             key={path}
             to={path}

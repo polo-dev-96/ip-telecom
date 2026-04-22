@@ -35,6 +35,11 @@ function getDefaultFilters(): DashboardFilters {
 
 export const DEFAULT_FILTERS: DashboardFilters = getDefaultFilters();
 
+function getAuthHeaders(): Record<string, string> {
+  const token = localStorage.getItem("ip_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 async function fetchAttendances(filters: DashboardFilters): Promise<ClosedAttendance[]> {
   const params = new URLSearchParams();
   if (filters.dateFrom) params.set("dateFrom", filters.dateFrom);
@@ -45,7 +50,7 @@ async function fetchAttendances(filters: DashboardFilters): Promise<ClosedAttend
 
   const url = `/api/attendances?${params}`;
   console.log("[Dashboard] Fetching:", url);
-  const response = await fetch(url);
+  const response = await fetch(url, { headers: getAuthHeaders() });
   if (!response.ok) throw new Error("Erro ao buscar atendimentos");
   const json = await response.json();
   console.log("[Dashboard] Received", json.data?.length ?? 0, "records for", filters.dateFrom, "→", filters.dateTo);
