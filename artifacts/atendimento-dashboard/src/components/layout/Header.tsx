@@ -39,12 +39,12 @@ export function Header({ dashboard }: HeaderProps) {
     : "U";
 
   return (
-    <header className="sticky top-0 z-20 flex items-center gap-3 h-14 px-4 border-b bg-card border-border/60 dark:border-white/[0.06]">
+    <header className="sticky top-0 z-20 flex items-center gap-3 h-14 px-4 border-b bg-card/80 backdrop-blur-md border-border/60 dark:border-white/[0.06] shadow-sm">
       <div className="flex-1 flex items-center gap-4 min-w-0">
         {/* Page indicator */}
-        <div className="hidden lg:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/5 dark:bg-primary/10">
           <Sparkles size={13} className="text-primary" />
-          <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+          <span className="text-xs text-primary/80 font-semibold uppercase tracking-wider">
             Dashboard
           </span>
         </div>
@@ -88,10 +88,10 @@ export function Header({ dashboard }: HeaderProps) {
           variant="ghost"
           size="icon"
           onClick={toggleTheme}
-          className="shrink-0 h-8 w-8 text-muted-foreground hover:text-foreground"
+          className="shrink-0 h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
           aria-label="Alternar tema"
         >
-          {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+          {theme === "dark" ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-indigo-500" />}
         </Button>
 
         {/* User menu */}
@@ -101,8 +101,8 @@ export function Header({ dashboard }: HeaderProps) {
               onClick={() => setMenuOpen((v) => !v)}
               className={cn(
                 "flex items-center gap-2 h-8 pl-1.5 pr-2.5 rounded-lg transition-all duration-200",
-                "hover:bg-accent border border-transparent",
-                menuOpen && "bg-accent border-border/60"
+                "hover:bg-accent hover:shadow-sm border border-transparent",
+                menuOpen && "bg-accent border-border/60 shadow-inner"
               )}
             >
               <div className={cn(
@@ -122,7 +122,7 @@ export function Header({ dashboard }: HeaderProps) {
 
             {/* Dropdown */}
             {menuOpen && (
-              <div className="absolute right-0 top-full mt-1.5 w-52 rounded-xl border border-border/60 bg-card shadow-xl shadow-black/10 dark:shadow-black/30 py-1.5 z-50">
+              <div className="absolute right-0 top-full mt-1.5 w-56 rounded-xl border border-border/60 bg-card/95 backdrop-blur-md shadow-xl shadow-black/10 dark:shadow-black/30 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                 {/* User info */}
                 <div className="px-3 py-2.5 border-b border-border/50 mb-1">
                   <div className="flex items-center gap-2">

@@ -341,17 +341,8 @@ export function MonitoramentoGeral() {
                     <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
                   </span>
                   Chat · Atendimentos
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">{filteredChat.length}</Badge>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">{attendances.length}</Badge>
                 </CardTitle>
-                <div className="relative w-full sm:w-56">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar contato, agente..."
-                    value={chatSearch}
-                    onChange={(e) => setChatSearch(e.target.value)}
-                    className="h-7 text-xs pl-8"
-                  />
-                </div>
               </div>
             </CardHeader>
             <CardContent className="p-0">
@@ -361,16 +352,16 @@ export function MonitoramentoGeral() {
                     <div className="w-10 h-10 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
                     <p className="text-xs text-muted-foreground">Carregando atendimentos...</p>
                   </div>
-                ) : filteredChat.length === 0 ? (
+                ) : attendances.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
                     <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
                       <User size={18} className="text-muted-foreground/50" />
                     </div>
-                    <p className="text-sm">Nenhum atendimento encontrado</p>
+                    <p className="text-sm">Nenhum atendimento</p>
                   </div>
                 ) : (
                   <div className="divide-y divide-border/30 dark:divide-white/[0.04]">
-                    {filteredChat.map((a) => (
+                    {attendances.map((a) => (
                       <div
                         key={a.id}
                         className="group flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-all duration-200"
@@ -477,17 +468,8 @@ export function MonitoramentoGeral() {
                 <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-primary" />
                   Telefonia · Ramais
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">{filteredRamais.length}</Badge>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">{ramais.length}</Badge>
                 </CardTitle>
-                <div className="relative w-full sm:w-56">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar ramal ou nome..."
-                    value={ramalSearch}
-                    onChange={(e) => setRamalSearch(e.target.value)}
-                    className="h-7 text-xs pl-8"
-                  />
-                </div>
               </div>
             </CardHeader>
             <CardContent className="p-0">
@@ -497,10 +479,10 @@ export function MonitoramentoGeral() {
                     <div className="w-10 h-10 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
                     <p className="text-xs text-muted-foreground">Carregando ramais...</p>
                   </div>
-                ) : filteredRamais.length === 0 ? (
+                ) : ramais.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
                     <WifiOff className="w-10 h-10 text-muted-foreground/30" />
-                    <p className="text-sm">Nenhum ramal encontrado</p>
+                    <p className="text-sm">Nenhum ramal</p>
                   </div>
                 ) : (
                   <Table>
@@ -514,7 +496,7 @@ export function MonitoramentoGeral() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredRamais.map((ramal) => {
+                      {ramais.map((ramal) => {
                         const callEntries = ramal.calllist ? Object.entries(ramal.calllist) : [];
                         const alwaysExpanded = ramal.inuse && callEntries.length > 0;
                         const canCollapse = alwaysExpanded;

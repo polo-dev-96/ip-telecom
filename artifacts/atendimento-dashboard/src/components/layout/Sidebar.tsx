@@ -74,21 +74,28 @@ export function Sidebar() {
           type="button"
           onClick={() => !collapsed && onToggle()}
           className={cn(
-            "w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-white/60 hover:text-white hover:bg-white/[0.07] transition-all duration-150 select-none",
+            "w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-white/60 hover:text-white hover:bg-white/[0.08] transition-all duration-200 select-none",
+            "active:scale-[0.98]",
             collapsed && "justify-center"
           )}
         >
-          <Icon size={16} className="shrink-0 text-white/50" />
+          <Icon size={16} className={cn(
+            "shrink-0 transition-colors duration-200",
+            open ? "text-blue-400" : "text-white/50"
+          )} />
           {!collapsed && (
             <>
-              <span className="flex-1 text-left text-[11px] font-semibold uppercase tracking-widest truncate">
+              <span className={cn(
+                "flex-1 text-left text-[11px] font-semibold uppercase tracking-widest truncate transition-colors duration-200",
+                open && "text-white"
+              )}>
                 {label}
               </span>
               <ChevronDown
                 size={13}
                 className={cn(
-                  "shrink-0 transition-transform duration-200 text-white/40",
-                  !open && "-rotate-90"
+                  "shrink-0 transition-transform duration-200",
+                  open ? "text-blue-400 rotate-0" : "text-white/40 -rotate-90"
                 )}
               />
             </>
@@ -96,11 +103,11 @@ export function Sidebar() {
         </button>
         <div
           className={cn(
-            "overflow-hidden transition-all duration-200",
+            "overflow-hidden transition-all duration-300 ease-out",
             open || collapsed ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
           )}
         >
-          <div className={cn("space-y-0.5 mt-0.5", !collapsed && "pl-2")}>
+          <div className={cn("space-y-0.5 mt-1", !collapsed && "pl-2 border-l border-white/[0.06] ml-2")}>
             {children}
           </div>
         </div>

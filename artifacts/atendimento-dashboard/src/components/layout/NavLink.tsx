@@ -20,15 +20,15 @@ export function NavLink({ to, label, icon, collapsed, highlight }: NavLinkProps)
       className={cn(
         "group relative flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-200",
         "hover:bg-white/[0.08]",
-        collapsed ? "justify-center" : "",
+        collapsed && "justify-center",
         isActive
-          ? "text-white bg-white/[0.12]"
+          ? "text-white bg-white/[0.12] shadow-[0_1px_3px_rgba(0,0,0,0.2)]"
           : "text-white/70 hover:text-white"
       )}
     >
       {/* Active indicator */}
       {isActive && (
-        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-blue-400 rounded-r-full" />
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-gradient-to-b from-blue-400 to-blue-600 rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
       )}
 
       {/* Icon */}

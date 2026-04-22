@@ -34,7 +34,7 @@ function DashboardLayout() {
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <Header dashboard={dashboard} />
         <main className="flex-1 overflow-y-auto">
-          <div className="p-4 sm:p-6">
+          <div className="p-4 sm:p-6 page-transition">
             <Switch>
               <Route path="/" component={() => <Overview dashboard={dashboard} />} />
               <Route path="/monitoramento-geral" component={() => <MonitoramentoGeral />} />
