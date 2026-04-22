@@ -1,3 +1,4 @@
+import React from "react";
 import { NavLink } from "@/components/layout/NavLink";
 import {
   LayoutDashboard,
@@ -6,29 +7,106 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Activity,
   Zap,
   Phone,
+  PhoneCall,
+  MessageCircle,
+  BarChart2,
+  MonitorPlay,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 
-const NAV_ITEMS = [
-  { path: "/", label: "Visão Geral", icon: LayoutDashboard },
+const CHAT_ITEMS = [
+  { path: "/", label: "Visão Geral - Chat", icon: LayoutDashboard },
   { path: "/atendimentos", label: "Atendimentos", icon: CheckCircle2 },
   { path: "/canais", label: "Canais", icon: Radio },
   { path: "/agentes", label: "Agentes", icon: Users },
   { path: "/acompanhamento", label: "Acompanhamento", icon: Activity, highlight: true },
+];
+
+const TELEFONIA_ITEMS = [
+  { path: "/telefonia", label: "Visão Geral - Telefonia", icon: BarChart2 },
+  { path: "/chamadas", label: "Chamadas", icon: PhoneCall },
+  { path: "/agentes-telefonia", label: "Agentes", icon: Users },
   { path: "/ramais", label: "Monitorar Ramais", icon: Phone },
 ];
 
+const BOTTOM_ITEMS = [
+  { path: "/monitoramento-geral", label: "Monitoramento Geral", icon: MonitorPlay, highlight: true },
+];
+
+// Top items (empty now - moved into groups above)
+
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [telefoniaOpen, setTelefoniaOpen] = useState(false);
   const { user } = useAuth();
-  const visibleNav = NAV_ITEMS.filter((item) =>
-    user?.role === "admin" || user?.permissions?.includes(item.path)
-  );
+
+  function canSee(path: string) {
+    return user?.role === "admin" || user?.permissions?.includes(path);
+  }
+
+  const visibleChat = CHAT_ITEMS.filter((i) => canSee(i.path));
+  const visibleTelefonia = TELEFONIA_ITEMS.filter((i) => canSee(i.path));
+  const visibleBottom = BOTTOM_ITEMS.filter((i) => canSee(i.path));
+
+  function SidebarGroup({
+    label,
+    icon: Icon,
+    open,
+    onToggle,
+    children,
+  }: {
+    label: string;
+    icon: React.ElementType;
+    open: boolean;
+    onToggle: () => void;
+    children: React.ReactNode;
+  }) {
+    return (
+      <div className="pt-1">
+        <button
+          type="button"
+          onClick={() => !collapsed && onToggle()}
+          className={cn(
+            "w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-white/60 hover:text-white hover:bg-white/[0.07] transition-all duration-150 select-none",
+            collapsed && "justify-center"
+          )}
+        >
+          <Icon size={16} className="shrink-0 text-white/50" />
+          {!collapsed && (
+            <>
+              <span className="flex-1 text-left text-[11px] font-semibold uppercase tracking-widest truncate">
+                {label}
+              </span>
+              <ChevronDown
+                size={13}
+                className={cn(
+                  "shrink-0 transition-transform duration-200 text-white/40",
+                  !open && "-rotate-90"
+                )}
+              />
+            </>
+          )}
+        </button>
+        <div
+          className={cn(
+            "overflow-hidden transition-all duration-200",
+            open || collapsed ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+          )}
+        >
+          <div className={cn("space-y-0.5 mt-0.5", !collapsed && "pl-2")}>
+            {children}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <aside
@@ -61,8 +139,53 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="relative flex-1 py-4 px-2.5 space-y-0.5">
-        {visibleNav.map(({ path, label, icon: Icon, highlight }) => (
+      <nav className="relative flex-1 py-4 px-2.5 space-y-0.5 overflow-y-auto">
+        {/* Chat group */}
+        {visibleChat.length > 0 && (
+          <SidebarGroup
+            label="Chat"
+            icon={MessageCircle}
+            open={chatOpen}
+            onToggle={() => setChatOpen((o) => !o)}
+          >
+            {visibleChat.map(({ path, label, icon: Icon, highlight }) => (
+              <NavLink
+                key={path}
+                to={path}
+                collapsed={collapsed}
+                icon={<Icon size={18} />}
+                label={label}
+                highlight={highlight}
+              />
+            ))}
+          </SidebarGroup>
+        )}
+
+        {/* Telefonia group */}
+        {visibleTelefonia.length > 0 && (
+          <SidebarGroup
+            label="Telefonia"
+            icon={Phone}
+            open={telefoniaOpen}
+            onToggle={() => setTelefoniaOpen((o) => !o)}
+          >
+            {visibleTelefonia.map(({ path, label, icon: Icon }) => (
+              <NavLink
+                key={path}
+                to={path}
+                collapsed={collapsed}
+                icon={<Icon size={18} />}
+                label={label}
+              />
+            ))}
+          </SidebarGroup>
+        )}
+
+        {/* Divider */}
+        {!collapsed && visibleBottom.length > 0 && <div className="my-3 border-t border-white/[0.08]" />}
+
+        {/* Bottom standalone items */}
+        {visibleBottom.map(({ path, label, icon: Icon, highlight }) => (
           <NavLink
             key={path}
             to={path}

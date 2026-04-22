@@ -1,15 +1,29 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useLocation } from "wouter";
 import { Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Login() {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+  const [, setLocation] = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Redirect after login based on permissions
+  useEffect(() => {
+    if (user) {
+      const canSeeMonitoramento = user.role === "admin" || user.permissions?.includes("/monitoramento-geral");
+      if (canSeeMonitoramento) {
+        setLocation("/monitoramento-geral");
+      } else {
+        setLocation("/");
+      }
+    }
+  }, [user, setLocation]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -17,6 +31,7 @@ export function Login() {
     setLoading(true);
     try {
       await login(email, password);
+      // Redirect will happen via useEffect above when user state updates
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Erro ao fazer login");
     } finally {

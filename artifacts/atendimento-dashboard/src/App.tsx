@@ -1,4 +1,4 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -10,6 +10,11 @@ import { Channels } from "@/pages/Channels";
 import { Agents } from "@/pages/Agents";
 import { LiveMonitoring } from "@/pages/LiveMonitoring";
 import { Ramais } from "@/pages/Ramais";
+import { TelefoneOverview } from "@/pages/TelefoneOverview";
+import { Chamadas } from "@/pages/Chamadas";
+import { ChamadaDetalhe } from "@/pages/ChamadaDetalhe";
+import { AgentesTelefonia } from "@/pages/AgentesTelefonia";
+import { MonitoramentoGeral } from "@/pages/MonitoramentoGeral";
 import { AttendanceDetail } from "@/pages/AttendanceDetail";
 import { UserManagement } from "@/pages/UserManagement";
 import { Login } from "@/pages/Login";
@@ -32,11 +37,16 @@ function DashboardLayout() {
           <div className="p-4 sm:p-6">
             <Switch>
               <Route path="/" component={() => <Overview dashboard={dashboard} />} />
+              <Route path="/monitoramento-geral" component={() => <MonitoramentoGeral />} />
               <Route path="/atendimentos" component={() => <Attendances dashboard={dashboard} />} />
               <Route path="/canais" component={() => <Channels dashboard={dashboard} />} />
               <Route path="/agentes" component={() => <Agents dashboard={dashboard} />} />
               <Route path="/acompanhamento" component={() => <LiveMonitoring />} />
               <Route path="/ramais" component={() => <Ramais />} />
+              <Route path="/telefonia" component={() => <TelefoneOverview dashboard={dashboard} />} />
+              <Route path="/chamadas" component={() => <Chamadas dashboard={dashboard} />} />
+              <Route path="/chamadas/:callid" component={() => <ChamadaDetalhe dashboard={dashboard} />} />
+              <Route path="/agentes-telefonia" component={() => <AgentesTelefonia dashboard={dashboard} />} />
               <Route path="/atendimento/:id" component={AttendanceDetail} />
               {user?.role === "admin" && (
                 <Route path="/usuarios" component={UserManagement} />

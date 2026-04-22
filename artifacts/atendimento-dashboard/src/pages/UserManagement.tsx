@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { UserPlus, Trash2, Users, ShieldCheck, User, Loader2, X, Eye, EyeOff, LayoutDashboard, CheckCircle2, Radio, Users as UsersIcon, Activity, Phone, Pencil, Check } from "lucide-react";
+import { UserPlus, Trash2, Users, ShieldCheck, User, Loader2, X, Eye, EyeOff, LayoutDashboard, CheckCircle2, Radio, Users as UsersIcon, Activity, Phone, Pencil, Check, BarChart2, PhoneCall, MonitorPlay } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface UserRow {
@@ -20,11 +20,15 @@ interface UserRow {
 
 const TAB_OPTIONS = [
   { path: "/", label: "Visão Geral", icon: LayoutDashboard },
+  { path: "/telefonia", label: "Visão Geral Tel.", icon: BarChart2 },
   { path: "/atendimentos", label: "Atendimentos", icon: CheckCircle2 },
   { path: "/canais", label: "Canais", icon: Radio },
   { path: "/agentes", label: "Agentes", icon: UsersIcon },
   { path: "/acompanhamento", label: "Acompanhamento", icon: Activity },
+  { path: "/chamadas", label: "Chamadas", icon: PhoneCall },
+  { path: "/agentes-telefonia", label: "Agentes Telefonia", icon: UsersIcon },
   { path: "/ramais", label: "Monitorar Ramais", icon: Phone },
+  { path: "/monitoramento-geral", label: "Monitoramento Geral", icon: MonitorPlay },
 ];
 
 function fmtDate(d: string) {
@@ -61,7 +65,7 @@ export function UserManagement() {
   const [editPerms, setEditPerms] = useState<string[]>([]);
   const [editError, setEditError] = useState<string | null>(null);
 
-  const ALL_TABS = ["/", "/atendimentos", "/canais", "/agentes", "/acompanhamento", "/ramais"];
+  const ALL_TABS = ["/", "/telefonia", "/atendimentos", "/canais", "/agentes", "/acompanhamento", "/chamadas", "/agentes-telefonia", "/ramais", "/monitoramento-geral"];
 
   function togglePerm(path: string) {
     setFormPermissions((prev) =>

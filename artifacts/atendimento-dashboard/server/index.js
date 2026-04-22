@@ -11,7 +11,7 @@ const ADMIN_EMAIL = "admin@polotelecom.com.br";
 const ADMIN_PASS = "Polo@123";
 const ADMIN_NAME = "Administrador";
 
-const ALL_TABS = ["/", "/atendimentos", "/canais", "/agentes", "/acompanhamento", "/ramais"];
+const ALL_TABS = ["/", "/atendimentos", "/canais", "/agentes", "/acompanhamento", "/ramais", "/telefonia", "/chamadas", "/agentes-telefonia", "/monitoramento-geral"];
 
 const app = express();
 app.use(cors());
@@ -21,9 +21,11 @@ app.use(express.json());
 app.use("/api/utech", async (req, res) => {
   const target = "https://ipfibra.ippolopabx.com.br/utech" + req.url;
   try {
+    const hasBody = req.method !== "GET" && req.method !== "HEAD";
     const resp = await fetch(target, {
       method: req.method,
       headers: { "Content-Type": "application/json" },
+      body: hasBody && req.body && Object.keys(req.body).length > 0 ? JSON.stringify(req.body) : undefined,
     });
     const data = await resp.text();
     res.status(resp.status).set("Content-Type", resp.headers.get("content-type") || "application/json").send(data);

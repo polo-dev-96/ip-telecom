@@ -13,7 +13,7 @@ interface HeaderProps {
   dashboard: DashboardState;
 }
 
-const HIDE_FILTERS_ROUTES = ["/acompanhamento", "/ramais", "/usuarios"];
+const HIDE_FILTERS_ROUTES = ["/acompanhamento", "/ramais", "/usuarios", "/monitoramento-geral"];
 
 export function Header({ dashboard }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
