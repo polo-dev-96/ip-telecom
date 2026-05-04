@@ -53,8 +53,8 @@ interface ApiResponse {
   } & Record<string, CallRecord | number>;
 }
 
-export function toApiDate(value: string): string {
-  return `${value} 00:00:00`;
+export function toApiDate(value: string, endOfDay = false): string {
+  return `${value} ${endOfDay ? "23:59:59" : "00:00:00"}`;
 }
 
 export function fmtDuration(seconds: number): string {
@@ -85,8 +85,8 @@ async function fetchPage(dateIni: string, dateEnd: string, page: number): Promis
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
-      date_ini: toApiDate(dateIni),
-      date_end: toApiDate(dateEnd),
+      date_ini: toApiDate(dateIni, false),
+      date_end: toApiDate(dateEnd, true),
     }),
   });
   if (!res.ok) throw new Error("Erro ao buscar chamadas");
