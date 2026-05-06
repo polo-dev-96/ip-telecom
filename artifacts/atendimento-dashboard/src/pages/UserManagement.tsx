@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +16,10 @@ interface UserRow {
   active: number;
   permissions: string[];
   created_at: string;
+  restrictChatQueues: boolean;
+  allowedChatQueues: string[];
+  restrictTelefoniaQueues: boolean;
+  allowedTelefoniaQueues: string[];
 }
 
 const TAB_OPTIONS = [
@@ -58,14 +62,51 @@ export function UserManagement() {
   const [formEmail, setFormEmail] = useState("");
   const [formPassword, setFormPassword] = useState("");
   const [formPermissions, setFormPermissions] = useState<string[]>(TAB_OPTIONS.map((t) => t.path));
+  const [formRestrictChat, setFormRestrictChat] = useState(false);
+  const [formAllowedChatQueues, setFormAllowedChatQueues] = useState<string[]>([]);
+  const [formRestrictTel, setFormRestrictTel] = useState(false);
+  const [formAllowedTelQueues, setFormAllowedTelQueues] = useState<string[]>([]);
   const [showPass, setShowPass] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [editId, setEditId] = useState<number | null>(null);
   const [editPerms, setEditPerms] = useState<string[]>([]);
+  const [editRestrictChat, setEditRestrictChat] = useState(false);
+  const [editAllowedChatQueues, setEditAllowedChatQueues] = useState<string[]>([]);
+  const [editRestrictTel, setEditRestrictTel] = useState(false);
+  const [editAllowedTelQueues, setEditAllowedTelQueues] = useState<string[]>([]);
   const [editError, setEditError] = useState<string | null>(null);
 
   const ALL_TABS = ["/", "/telefonia", "/atendimentos", "/canais", "/agentes", "/acompanhamento", "/chamadas", "/agentes-telefonia", "/ramais", "/monitoramento-geral"];
+
+  // Fetch available queues for filters (chat queues from database)
+  const { data: filterData } = useQuery({
+    queryKey: ["filters"],
+    queryFn: async () => {
+      const res = await authFetch("/api/filters");
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error);
+      return json as { queues: { value: string; label: string }[] };
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Fetch uTech queues (telefonia queues from API)
+  const { data: utechQueuesData, error: utechQueuesError, isLoading: utechQueuesLoading } = useQuery({
+    queryKey: ["telefonia-queues"],
+    queryFn: async () => {
+      const res = await authFetch("/api/telefonia-queues");
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Erro ao carregar filas de telefonia");
+      return json as { queues: { value: string; label: string }[] };
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  });
+
+
+  const availableChatQueues = filterData?.queues || [];
+  const availableTelQueues = utechQueuesData?.queues || [];
 
   function togglePerm(path: string) {
     setFormPermissions((prev) =>
@@ -84,6 +125,10 @@ export function UserManagement() {
     setEditError(null);
     const perms = u.permissions && u.permissions.length > 0 ? u.permissions : ALL_TABS;
     setEditPerms(perms);
+    setEditRestrictChat(u.restrictChatQueues || false);
+    setEditAllowedChatQueues(u.allowedChatQueues || []);
+    setEditRestrictTel(u.restrictTelefoniaQueues || false);
+    setEditAllowedTelQueues(u.allowedTelefoniaQueues || []);
     setDeleteId(null);
   }
 
@@ -101,7 +146,16 @@ export function UserManagement() {
     mutationFn: async () => {
       const res = await authFetch("/api/users", {
         method: "POST",
-        body: JSON.stringify({ name: formName, email: formEmail, password: formPassword, permissions: formPermissions }),
+        body: JSON.stringify({
+          name: formName,
+          email: formEmail,
+          password: formPassword,
+          permissions: formPermissions,
+          restrictChatQueues: formRestrictChat,
+          allowedChatQueues: formAllowedChatQueues,
+          restrictTelefoniaQueues: formRestrictTel,
+          allowedTelefoniaQueues: formAllowedTelQueues,
+        }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error);
@@ -110,16 +164,24 @@ export function UserManagement() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["users"] });
       setShowForm(false);
-      setFormName(""); setFormEmail(""); setFormPassword(""); setFormPermissions(TAB_OPTIONS.map((t) => t.path)); setFormError(null);
+      setFormName(""); setFormEmail(""); setFormPassword(""); setFormPermissions(TAB_OPTIONS.map((t) => t.path));
+      setFormRestrictChat(false); setFormAllowedChatQueues([]); setFormRestrictTel(false); setFormAllowedTelQueues([]);
+      setFormError(null);
     },
     onError: (e: Error) => setFormError(e.message),
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, permissions }: { id: number; permissions: string[] }) => {
+    mutationFn: async ({ id, permissions, restrictChat, allowedChat, restrictTel, allowedTel }: { id: number; permissions: string[]; restrictChat: boolean; allowedChat: string[]; restrictTel: boolean; allowedTel: string[] }) => {
       const res = await authFetch(`/api/users/${id}`, {
         method: "PUT",
-        body: JSON.stringify({ permissions }),
+        body: JSON.stringify({
+          permissions,
+          restrictChatQueues: restrictChat,
+          allowedChatQueues: allowedChat,
+          restrictTelefoniaQueues: restrictTel,
+          allowedTelefoniaQueues: allowedTel,
+        }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error);
@@ -289,6 +351,107 @@ export function UserManagement() {
                   })}
                 </div>
               </div>
+
+              {/* Queue Restrictions */}
+              <div className="space-y-3 sm:col-span-2 pt-2 border-t border-border/50">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Restrição de Filas</label>
+                
+                {/* Chat Queues */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formRestrictChat}
+                      onChange={(e) => setFormRestrictChat(e.target.checked)}
+                      className="rounded border-border text-blue-500 focus:ring-blue-500/20"
+                    />
+                    <span>Restringir filas de Chat</span>
+                  </label>
+                  {formRestrictChat && (
+                    <div className="pl-6 space-y-2">
+                      {availableChatQueues.length === 0 ? (
+                        <p className="text-xs text-muted-foreground italic">Carregando filas...</p>
+                      ) : (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {availableChatQueues.map((queue) => {
+                            const checked = formAllowedChatQueues.includes(queue.value);
+                            return (
+                              <button
+                                key={queue.value}
+                                type="button"
+                                onClick={() => setFormAllowedChatQueues((prev) =>
+                                  checked ? prev.filter((q) => q !== queue.value) : [...prev, queue.value]
+                                )}
+                                className={cn(
+                                  "flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-all text-left",
+                                  checked
+                                    ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
+                                    : "bg-background border-border text-muted-foreground hover:border-border/80"
+                                )}
+                              >
+                                <div className={cn("w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all",
+                                  checked ? "bg-emerald-500 border-emerald-500" : "border-muted-foreground/30"
+                                )}>
+                                  {checked && <svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 3L3 5L7 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                                </div>
+                                {queue.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Telefonia Queues */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formRestrictTel}
+                      onChange={(e) => setFormRestrictTel(e.target.checked)}
+                      className="rounded border-border text-blue-500 focus:ring-blue-500/20"
+                    />
+                    <span>Restringir filas de Telefonia</span>
+                  </label>
+                  {formRestrictTel && (
+                    <div className="pl-6 space-y-2">
+                      {availableTelQueues.length === 0 ? (
+                        <p className="text-xs text-muted-foreground italic">Carregando filas...</p>
+                      ) : (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {availableTelQueues.map((queue) => {
+                            const checked = formAllowedTelQueues.includes(queue.value);
+                            return (
+                              <button
+                                key={queue.value}
+                                type="button"
+                                onClick={() => setFormAllowedTelQueues((prev) =>
+                                  checked ? prev.filter((q) => q !== queue.value) : [...prev, queue.value]
+                                )}
+                                className={cn(
+                                  "flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-all text-left",
+                                  checked
+                                    ? "bg-purple-500/10 border-purple-500/40 text-purple-600 dark:text-purple-400"
+                                    : "bg-background border-border text-muted-foreground hover:border-border/80"
+                                )}
+                              >
+                                <div className={cn("w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all",
+                                  checked ? "bg-purple-500 border-purple-500" : "border-muted-foreground/30"
+                                )}>
+                                  {checked && <svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 3L3 5L7 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                                </div>
+                                {queue.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {formError && (
@@ -426,41 +589,146 @@ export function UserManagement() {
                       {editId === u.id && (
                         <TableRow key={`edit-${u.id}`} className="border-border/30 dark:border-white/[0.04] bg-blue-500/[0.03]">
                           <TableCell colSpan={5} className="pb-4 pt-1 px-4">
-                            <div className="space-y-3">
-                              <div className="flex items-center justify-between">
-                                <p className="text-xs font-semibold text-foreground">Editar abas visíveis para <span className="text-blue-500">{u.name}</span></p>
-                                <div className="flex gap-2">
-                                  <button type="button" onClick={() => setEditPerms(TAB_OPTIONS.map((t) => t.path))} className="text-[10px] text-blue-500 hover:text-blue-400 font-semibold">Selecionar tudo</button>
-                                  <span className="text-muted-foreground/40 text-[10px]">|</span>
-                                  <button type="button" onClick={() => setEditPerms([])} className="text-[10px] text-muted-foreground hover:text-foreground font-semibold">Limpar</button>
+                            <div className="space-y-4">
+                              {/* Tabs Section */}
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <p className="text-xs font-semibold text-foreground">Editar abas visíveis para <span className="text-blue-500">{u.name}</span></p>
+                                  <div className="flex gap-2">
+                                    <button type="button" onClick={() => setEditPerms(TAB_OPTIONS.map((t) => t.path))} className="text-[10px] text-blue-500 hover:text-blue-400 font-semibold">Selecionar tudo</button>
+                                    <span className="text-muted-foreground/40 text-[10px]">|</span>
+                                    <button type="button" onClick={() => setEditPerms([])} className="text-[10px] text-muted-foreground hover:text-foreground font-semibold">Limpar</button>
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+                                  {TAB_OPTIONS.map(({ path, label, icon: Icon }) => {
+                                    const checked = editPerms.includes(path);
+                                    return (
+                                      <button
+                                        key={path}
+                                        type="button"
+                                        onClick={() => toggleEditPerm(path)}
+                                        className={cn(
+                                          "flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-all text-left",
+                                          checked
+                                            ? "bg-blue-500/10 border-blue-500/40 text-blue-600 dark:text-blue-400"
+                                            : "bg-background border-border text-muted-foreground hover:border-border/80"
+                                        )}
+                                      >
+                                        <div className={cn("w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all",
+                                          checked ? "bg-blue-500 border-blue-500" : "border-muted-foreground/30"
+                                        )}>
+                                          {checked && <svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 3L3 5L7 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                                        </div>
+                                        <Icon size={13} />
+                                        {label}
+                                      </button>
+                                    );
+                                  })}
                                 </div>
                               </div>
-                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-                                {TAB_OPTIONS.map(({ path, label, icon: Icon }) => {
-                                  const checked = editPerms.includes(path);
-                                  return (
-                                    <button
-                                      key={path}
-                                      type="button"
-                                      onClick={() => toggleEditPerm(path)}
-                                      className={cn(
-                                        "flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-all text-left",
-                                        checked
-                                          ? "bg-blue-500/10 border-blue-500/40 text-blue-600 dark:text-blue-400"
-                                          : "bg-background border-border text-muted-foreground hover:border-border/80"
+
+                              {/* Queue Restrictions Section */}
+                              <div className="space-y-3 pt-3 border-t border-border/50">
+                                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Restrição de Filas</p>
+                                
+                                {/* Chat Queues */}
+                                <div className="space-y-2">
+                                  <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={editRestrictChat}
+                                      onChange={(e) => setEditRestrictChat(e.target.checked)}
+                                      className="rounded border-border text-blue-500 focus:ring-blue-500/20"
+                                    />
+                                    <span>Restringir filas de Chat</span>
+                                  </label>
+                                  {editRestrictChat && (
+                                    <div className="pl-6 space-y-2">
+                                      {availableChatQueues.length === 0 ? (
+                                        <p className="text-xs text-muted-foreground italic">Carregando filas...</p>
+                                      ) : (
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+                                          {availableChatQueues.map((queue) => {
+                                            const checked = editAllowedChatQueues.includes(queue.value);
+                                            return (
+                                              <button
+                                                key={queue.value}
+                                                type="button"
+                                                onClick={() => setEditAllowedChatQueues((prev) =>
+                                                  checked ? prev.filter((q) => q !== queue.value) : [...prev, queue.value]
+                                                )}
+                                                className={cn(
+                                                  "flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-all text-left",
+                                                  checked
+                                                    ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
+                                                    : "bg-background border-border text-muted-foreground hover:border-border/80"
+                                                )}
+                                              >
+                                                <div className={cn("w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all",
+                                                  checked ? "bg-emerald-500 border-emerald-500" : "border-muted-foreground/30"
+                                                )}>
+                                                  {checked && <svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 3L3 5L7 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                                                </div>
+                                                {queue.label}
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
                                       )}
-                                    >
-                                      <div className={cn("w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all",
-                                        checked ? "bg-blue-500 border-blue-500" : "border-muted-foreground/30"
-                                      )}>
-                                        {checked && <svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 3L3 5L7 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                                      </div>
-                                      <Icon size={13} />
-                                      {label}
-                                    </button>
-                                  );
-                                })}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Telefonia Queues */}
+                                <div className="space-y-2">
+                                  <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={editRestrictTel}
+                                      onChange={(e) => setEditRestrictTel(e.target.checked)}
+                                      className="rounded border-border text-blue-500 focus:ring-blue-500/20"
+                                    />
+                                    <span>Restringir filas de Telefonia</span>
+                                  </label>
+                                  {editRestrictTel && (
+                                    <div className="pl-6 space-y-2">
+                                      {availableTelQueues.length === 0 ? (
+                                        <p className="text-xs text-muted-foreground italic">Carregando filas...</p>
+                                      ) : (
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+                                          {availableTelQueues.map((queue) => {
+                                            const checked = editAllowedTelQueues.includes(queue.value);
+                                            return (
+                                              <button
+                                                key={queue.value}
+                                                type="button"
+                                                onClick={() => setEditAllowedTelQueues((prev) =>
+                                                  checked ? prev.filter((q) => q !== queue.value) : [...prev, queue.value]
+                                                )}
+                                                className={cn(
+                                                  "flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-all text-left",
+                                                  checked
+                                                    ? "bg-purple-500/10 border-purple-500/40 text-purple-600 dark:text-purple-400"
+                                                    : "bg-background border-border text-muted-foreground hover:border-border/80"
+                                                )}
+                                              >
+                                                <div className={cn("w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all",
+                                                  checked ? "bg-purple-500 border-purple-500" : "border-muted-foreground/30"
+                                                )}>
+                                                  {checked && <svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 3L3 5L7 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                                                </div>
+                                                {queue.label}
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
+
                               {editError && (
                                 <div className="flex items-center gap-2 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2">
                                   <div className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
@@ -472,7 +740,7 @@ export function UserManagement() {
                                 <Button
                                   size="sm"
                                   disabled={updateMutation.isPending}
-                                  onClick={() => updateMutation.mutate({ id: u.id, permissions: editPerms })}
+                                  onClick={() => updateMutation.mutate({ id: u.id, permissions: editPerms, restrictChat: editRestrictChat, allowedChat: editAllowedChatQueues, restrictTel: editRestrictTel, allowedTel: editAllowedTelQueues })}
                                   className="text-xs h-7 gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white border-0"
                                 >
                                   {updateMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}

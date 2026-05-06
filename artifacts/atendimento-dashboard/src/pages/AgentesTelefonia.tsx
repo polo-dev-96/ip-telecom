@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/context/AuthContext";
 import type { DashboardState } from "@/hooks/useDashboard";
 import { fetchAgents } from "@/data/api/activeChats";
 import {
@@ -112,6 +113,7 @@ function KpiCard({
 }
 
 export function AgentesTelefonia({ dashboard }: AgentesTelefoniaProps) {
+  const { user } = useAuth();
   const dateIni = dashboard.filters.dateFrom;
   const dateEnd = dashboard.filters.dateTo;
 
@@ -134,12 +136,38 @@ export function AgentesTelefonia({ dashboard }: AgentesTelefoniaProps) {
     staleTime: 5 * 60 * 1000,
   });
 
+  const agentQueuesMap = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const agent of agentList) {
+      if (agent.queues && agent.queues.length > 0) {
+        map.set(agent.id, agent.queues.map((q) => q.queue));
+      }
+    }
+    return map;
+  }, [agentList]);
+
   const agentMap = useMemo(
     () => new Map(agentList.map((a) => [a.id, a.name])),
     [agentList]
   );
 
-  const calls = useMemo(() => withoutCanceled(rawCalls), [rawCalls]);
+  const calls = useMemo(() => {
+    const cleaned = withoutCanceled(rawCalls);
+    
+    // Apply queue restrictions
+    if (user?.restrictTelefoniaQueues && user.allowedTelefoniaQueues && user.allowedTelefoniaQueues.length > 0) {
+      return cleaned.filter((c) => {
+        if (!c.agent || c.agent === "-" || c.agent === "") return false;
+        const agentQueueIds = agentQueuesMap.get(c.agent);
+        if (!agentQueueIds) return false;
+        return agentQueueIds.some((qid) => user.allowedTelefoniaQueues!.includes(qid));
+      });
+    } else if (user?.restrictTelefoniaQueues) {
+      return [];
+    }
+    
+    return cleaned;
+  }, [rawCalls, user, agentQueuesMap]);
 
   const agentMetrics = useMemo(
     () => computeAgentMetrics(calls, agentMap),

@@ -19,10 +19,12 @@ import {
   PhoneIncoming, PhoneOutgoing, LayoutDashboard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 import {
   fetchActiveChats, fetchQueues, fetchAgents, resolveNames,
   type LiveAttendance,
 } from "@/data/api/activeChats";
+import { fetchCalls, withoutCanceled } from "@/lib/telefonia";
 
 // ======================== TYPES ========================
 
@@ -112,8 +114,11 @@ async function fetchRamais(): Promise<RamalData[]> {
 // ======================== COMPONENT ========================
 
 export function MonitoramentoGeral() {
+  const { user } = useAuth();
+
   // ===== CHAT STATE =====
   const [attendances, setAttendances] = useState<LiveAttendance[]>([]);
+
   const [chatSearch, setChatSearch] = useState("");
   const [chatLoading, setChatLoading] = useState(true);
   const [chatError, setChatError] = useState<string | null>(null);
@@ -121,6 +126,10 @@ export function MonitoramentoGeral() {
 
   const [queueMap, setQueueMap] = useState<Map<string, string>>(new Map());
   const [agentMap, setAgentMap] = useState<Map<string, string>>(new Map());
+  // Map of agentId -> queueIds[] for filtering ramais by queue
+  const [agentQueuesMap, setAgentQueuesMap] = useState<Map<string, string[]>>(new Map());
+  // Map of agentName -> queueIds[] for filtering ramais by queue
+  const [agentNameQueuesMap, setAgentNameQueuesMap] = useState<Map<string, string[]>>(new Map());
 
   const queueMapRef = useRef(queueMap);
   const agentMapRef = useRef(agentMap);
@@ -131,6 +140,32 @@ export function MonitoramentoGeral() {
   const [ramalSearch, setRamalSearch] = useState("");
   const [expandedRamais, setExpandedRamais] = useState<Set<string>>(new Set());
 
+  // Today's date range for calls
+  const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
+  // Fetch today's calls to show per-agent call count
+  const { data: todayCallsRaw = [] } = useQuery({
+    queryKey: ["calls-today", todayStr],
+    queryFn: () => fetchCalls(todayStr, todayStr),
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+  });
+
+  // Build map: agent name (lowercase) → call count today
+  // call.agent contains internal IDs (e.g. "4445"), not extension numbers
+  // Bridge via agentMap: agent.id → agent.name
+  const agentCallsTodayMap = useMemo(() => {
+    const calls = withoutCanceled(todayCallsRaw);
+    const map = new Map<string, number>();
+    for (const c of calls) {
+      if (c.agent && c.agent !== "-" && c.agent !== "") {
+        const name = (agentMap.get(c.agent) ?? "").toLowerCase().trim();
+        if (name) map.set(name, (map.get(name) ?? 0) + 1);
+      }
+    }
+    return map;
+  }, [todayCallsRaw, agentMap]);
+
   // ===== LOAD CHAT DATA =====
   useEffect(() => {
     (async () => {
@@ -138,8 +173,25 @@ export function MonitoramentoGeral() {
         const [qList, aList] = await Promise.all([fetchQueues(), fetchAgents()]);
         const qm = new Map(qList.map((q) => [q.id, q.name]));
         const am = new Map(aList.map((a) => [a.id, a.name]));
+        
+        // Build maps for filtering ramais by queue
+        const aqm = new Map<string, string[]>();
+        const anqm = new Map<string, string[]>();
+        
+        for (const agent of aList) {
+          if (agent.queues && agent.queues.length > 0) {
+            const qids = agent.queues.map((q) => q.queue);
+            aqm.set(agent.id, qids);
+            if (agent.name) {
+              anqm.set(agent.name.toLowerCase().trim(), qids);
+            }
+          }
+        }
+        
         setQueueMap(qm);
         setAgentMap(am);
+        setAgentQueuesMap(aqm);
+        setAgentNameQueuesMap(anqm);
       } catch (err) {
         console.warn("Erro ao carregar listas de filas/agentes:", err);
       }
@@ -195,39 +247,103 @@ export function MonitoramentoGeral() {
   });
 
   // ===== DERIVED CHAT =====
-  const inQueue = attendances.filter((a) => a.phase === "fila");
-  const withAgent = attendances.filter((a) => a.phase === "agente");
+  const filteredChatAttendances = useMemo(() => {
+    // Filter attendances based on user's queue restrictions
+    let base = attendances;
+    
+    // In the Unified Monitor, we merge Chat and Telefonia allowed queues to be more flexible,
+    // as some queues (like 8002) might be configured in one section but affect the other.
+    const isRestricted = user?.restrictChatQueues || user?.restrictTelefoniaQueues;
+    const allowed = [
+      ...(user?.allowedChatQueues || []),
+      ...(user?.allowedTelefoniaQueues || [])
+    ].map(id => String(id));
+
+    if (isRestricted && allowed.length > 0) {
+      base = attendances.filter((a) => {
+        const dstId = String(a.dst);
+        const dstNameLower = a.dstName.toLowerCase().trim();
+        
+        // 1. Direct match: Is the chat currently in a permitted queue?
+        if (allowed.includes(dstId)) return true;
+
+        // 2. Agent match: Is the chat with an agent who belongs to a permitted queue?
+        const agentQueueIds = agentQueuesMap.get(dstId) || agentNameQueuesMap.get(dstNameLower);
+        
+        if (agentQueueIds && agentQueueIds.some((qid) => allowed.includes(String(qid)))) {
+          return true;
+        }
+
+        return false;
+      });
+    } else if (isRestricted) {
+      base = [];
+    }
+    return base;
+  }, [attendances, user, agentQueuesMap, agentNameQueuesMap]);
+
+  const inQueue = useMemo(() => filteredChatAttendances.filter((a) => a.phase === "fila"), [filteredChatAttendances]);
+  const withAgent = useMemo(() => filteredChatAttendances.filter((a) => a.phase === "agente"), [filteredChatAttendances]);
+
+  const totalAtendimentosChat = filteredChatAttendances.length;
 
   const filteredChat = useMemo(() => {
-    if (!chatSearch) return attendances;
-    const q = chatSearch.toLowerCase();
-    return attendances.filter((a) =>
-      a.contactName.toLowerCase().includes(q) ||
-      a.contactPhone.includes(q) ||
-      a.dstName.toLowerCase().includes(q) ||
-      a.dst.includes(q)
-    );
-  }, [attendances, chatSearch]);
+    const base = chatSearch
+      ? filteredChatAttendances.filter((a) => {
+          const q = chatSearch.toLowerCase();
+          return (
+            a.contactName.toLowerCase().includes(q) ||
+            a.contactPhone.includes(q) ||
+            a.dstName.toLowerCase().includes(q) ||
+            a.dst.includes(q)
+          );
+        })
+      : filteredChatAttendances;
+    return [...base].sort((a, b) => {
+      if (a.phase === "agente" && b.phase !== "agente") return -1;
+      if (a.phase !== "agente" && b.phase === "agente") return 1;
+      return 0;
+    });
+  }, [filteredChatAttendances, chatSearch]);
 
   // ===== DERIVED RAMAIS =====
   const filteredRamais = useMemo(() => {
-    return ramais
+    // Filter out test extensions and apply queue restrictions
+    const EXCLUDED_EXTENS = ["5599"];
+    let queueFiltered = ramais.filter((r) => !EXCLUDED_EXTENS.includes(r.exten));
+    if (user?.restrictTelefoniaQueues && user.allowedTelefoniaQueues && user.allowedTelefoniaQueues.length > 0) {
+      queueFiltered = queueFiltered.filter((r) => {
+        const ramalName = r.name.toLowerCase().trim();
+        const agentQueueIds = agentQueuesMap.get(r.exten) || agentNameQueuesMap.get(ramalName);
+        if (!agentQueueIds || agentQueueIds.length === 0) return false;
+        return agentQueueIds.some((qid) => user.allowedTelefoniaQueues!.includes(qid));
+      });
+    } else if (user?.restrictTelefoniaQueues) {
+      queueFiltered = [];
+    }
+
+    return queueFiltered
       .filter(
         (r) =>
           r.exten.toLowerCase().includes(ramalSearch.toLowerCase()) ||
           r.name.toLowerCase().includes(ramalSearch.toLowerCase())
       )
       .sort((a, b) => {
-        if (a.inuse && !b.inuse) return -1;
-        if (!a.inuse && b.inuse) return 1;
+        // Sort: calls today desc, then in-use, then registered, then extension
+        const aCalls = agentCallsTodayMap.get(a.name.toLowerCase().trim()) ?? 0;
+        const bCalls = agentCallsTodayMap.get(b.name.toLowerCase().trim()) ?? 0;
+        if (bCalls !== aCalls) return bCalls - aCalls;
+        const aScore = (a.inuse ? 2 : 0) + (a.status === "Reachable" ? 1 : 0);
+        const bScore = (b.inuse ? 2 : 0) + (b.status === "Reachable" ? 1 : 0);
+        if (bScore !== aScore) return bScore - aScore;
         return parseInt(a.exten) - parseInt(b.exten);
       });
-  }, [ramais, ramalSearch]);
+  }, [ramais, ramalSearch, user, agentQueuesMap, agentNameQueuesMap, agentCallsTodayMap]);
 
-  const totalRamais = ramais.length;
-  const registrados = ramais.filter((r) => r.status === "Reachable" && !r.inuse).length;
-  const emUso = ramais.filter((r) => r.inuse).length;
-  const naoRegistrados = ramais.filter((r) => r.status === "Unreachable").length;
+  const totalRamais = filteredRamais.length;
+  const registrados = filteredRamais.filter((r) => r.status === "Reachable" && !r.inuse).length;
+  const emUso = filteredRamais.filter((r) => r.inuse).length;
+  const naoRegistrados = filteredRamais.filter((r) => r.status === "Unreachable").length;
 
   function toggleExpand(exten: string) {
     setExpandedRamais((prev) => {
@@ -292,7 +408,7 @@ export function MonitoramentoGeral() {
                   </div>
                   <div>
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Em Atend.</p>
-                    <p className="text-xl font-extrabold tabular-nums text-foreground">{attendances.length}</p>
+                    <p className="text-xl font-extrabold tabular-nums text-foreground">{totalAtendimentosChat}</p>
                   </div>
                 </div>
               </CardContent>
@@ -323,7 +439,7 @@ export function MonitoramentoGeral() {
                   <div>
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Canais</p>
                     <p className="text-xl font-extrabold tabular-nums text-cyan-600 dark:text-cyan-400">
-                      {new Set(attendances.map((a) => a.channel)).size}
+                      {new Set(filteredChatAttendances.map((a) => a.channel)).size}
                     </p>
                   </div>
                 </div>
@@ -341,27 +457,27 @@ export function MonitoramentoGeral() {
                     <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
                   </span>
                   Chat · Atendimentos
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">{attendances.length}</Badge>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">{totalAtendimentosChat}</Badge>
                 </CardTitle>
               </div>
             </CardHeader>
             <CardContent className="p-0">
               <ScrollArea className="h-[420px] scrollbar-thin">
-                {chatLoading && attendances.length === 0 ? (
+                {chatLoading && filteredChatAttendances.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 gap-3">
                     <div className="w-10 h-10 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
                     <p className="text-xs text-muted-foreground">Carregando atendimentos...</p>
                   </div>
-                ) : attendances.length === 0 ? (
+                ) : filteredChatAttendances.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
                     <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
                       <User size={18} className="text-muted-foreground/50" />
                     </div>
-                    <p className="text-sm">Nenhum atendimento</p>
+                    <p className="text-xs">Nenhum atendimento em andamento</p>
                   </div>
                 ) : (
                   <div className="divide-y divide-border/30 dark:divide-white/[0.04]">
-                    {attendances.map((a) => (
+                    {filteredChat.map((a) => (
                       <div
                         key={a.id}
                         className="group flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-all duration-200"
@@ -468,7 +584,7 @@ export function MonitoramentoGeral() {
                 <CardTitle className="text-sm font-semibold tracking-tight flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-primary" />
                   Telefonia · Ramais
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">{ramais.length}</Badge>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">{filteredRamais.length}</Badge>
                 </CardTitle>
               </div>
             </CardHeader>
@@ -479,7 +595,7 @@ export function MonitoramentoGeral() {
                     <div className="w-10 h-10 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
                     <p className="text-xs text-muted-foreground">Carregando ramais...</p>
                   </div>
-                ) : ramais.length === 0 ? (
+                ) : filteredRamais.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
                     <WifiOff className="w-10 h-10 text-muted-foreground/30" />
                     <p className="text-sm">Nenhum ramal</p>
@@ -496,7 +612,7 @@ export function MonitoramentoGeral() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {ramais.map((ramal) => {
+                      {filteredRamais.map((ramal) => {
                         const callEntries = ramal.calllist ? Object.entries(ramal.calllist) : [];
                         const alwaysExpanded = ramal.inuse && callEntries.length > 0;
                         const canCollapse = alwaysExpanded;
@@ -537,7 +653,7 @@ export function MonitoramentoGeral() {
                                   </Badge>
                                 )}
                               </TableCell>
-                              <TableCell className="text-[11px] p-2">{ramal.calls ?? 0}</TableCell>
+                              <TableCell className="text-[11px] p-2 font-semibold tabular-nums">{agentCallsTodayMap.get(ramal.name.toLowerCase().trim()) ?? 0}</TableCell>
                             </TableRow>
 
                             {isExpanded && callEntries.length > 0 && (

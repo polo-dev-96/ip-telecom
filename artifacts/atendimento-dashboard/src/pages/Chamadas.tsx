@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { useAuth } from "@/context/AuthContext";
 import type { DashboardState } from "@/hooks/useDashboard";
 import { fetchAgents } from "@/data/api/activeChats";
 import {
@@ -72,6 +73,7 @@ function StatusBadge({ status }: { status: CallRecord["status"] }) {
 }
 
 export function Chamadas({ dashboard }: ChamadasProps) {
+  const { user } = useAuth();
   const dateIni = dashboard.filters.dateFrom;
   const dateEnd = dashboard.filters.dateTo;
 
@@ -99,7 +101,36 @@ export function Chamadas({ dashboard }: ChamadasProps) {
     [agentList]
   );
 
-  const calls = useMemo(() => withoutCanceled(rawCalls), [rawCalls]);
+  const agentQueuesMap = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const agent of agentList) {
+      if (agent.queues && agent.queues.length > 0) {
+        map.set(agent.id, agent.queues.map((q) => q.queue));
+      }
+    }
+    return map;
+  }, [agentList]);
+
+  const calls = useMemo(() => {
+    const cleaned = withoutCanceled(rawCalls);
+    
+    // Apply queue restrictions
+    if (user?.restrictTelefoniaQueues && user.allowedTelefoniaQueues && user.allowedTelefoniaQueues.length > 0) {
+      return cleaned.filter((c) => {
+        if (!c.agent || c.agent === "-" || c.agent === "") {
+          // If no agent assigned, we don't know the queue, so we hide it under restriction
+          return false;
+        }
+        const agentQueueIds = agentQueuesMap.get(c.agent);
+        if (!agentQueueIds) return false;
+        return agentQueueIds.some((qid) => user.allowedTelefoniaQueues!.includes(qid));
+      });
+    } else if (user?.restrictTelefoniaQueues) {
+      return [];
+    }
+    
+    return cleaned;
+  }, [rawCalls, user, agentQueuesMap]);
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);

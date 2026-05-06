@@ -55,7 +55,8 @@ function parseDurationToSeconds(duration: string): number {
 }
 
 function mapChat(chat: ApiChat): LiveAttendance {
-  const isQueued = chat.status?.toLowerCase() === "queued";
+  const status = chat.status?.toLowerCase() || "";
+  const isQueued = status === "queued";
 
   return {
     id: chat.id ?? `${chat.src}-${chat.dst}-${chat.date}`,

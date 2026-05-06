@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import type { DashboardState } from "@/hooks/useDashboard";
 import { fetchAgents } from "@/data/api/activeChats";
@@ -55,6 +56,7 @@ interface TelefoneOverviewProps {
 }
 
 export function TelefoneOverview({ dashboard }: TelefoneOverviewProps) {
+  const { user } = useAuth();
   const dateIni = dashboard.filters.dateFrom;
   const dateEnd = dashboard.filters.dateTo;
 
@@ -82,8 +84,24 @@ export function TelefoneOverview({ dashboard }: TelefoneOverviewProps) {
     [agentList]
   );
 
-  // Exclude canceled calls from all computations
-  const calls = useMemo(() => withoutCanceled(rawCalls), [rawCalls]);
+  // Build set of allowed agent IDs based on user's telefonia queue restrictions
+  const allowedAgentIds = useMemo(() => {
+    if (!user?.restrictTelefoniaQueues || !user.allowedTelefoniaQueues?.length) return null;
+    const allowed = new Set<string>();
+    for (const agent of agentList) {
+      if (agent.queues?.some((q) => user.allowedTelefoniaQueues!.includes(q.queue))) {
+        allowed.add(agent.id);
+      }
+    }
+    return allowed;
+  }, [user, agentList]);
+
+  // Exclude canceled calls, then filter by allowed agents if restriction is set
+  const calls = useMemo(() => {
+    const filtered = withoutCanceled(rawCalls);
+    if (!allowedAgentIds) return filtered;
+    return filtered.filter((c) => !c.agent || allowedAgentIds.has(c.agent));
+  }, [rawCalls, allowedAgentIds]);
 
   const inCalls = useMemo(() => calls.filter((c) => c.direction === "IN"), [calls]);
   const outCalls = useMemo(() => calls.filter((c) => c.direction === "OUT"), [calls]);

@@ -14,6 +14,7 @@ interface HeaderProps {
 }
 
 const HIDE_FILTERS_ROUTES = ["/acompanhamento", "/ramais", "/usuarios", "/monitoramento-geral"];
+const TELEFONIA_ROUTES = ["/telefonia", "/chamadas", "/agentes-telefonia"];
 
 export function Header({ dashboard }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
@@ -22,6 +23,7 @@ export function Header({ dashboard }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [location] = useLocation();
   const showFilters = !HIDE_FILTERS_ROUTES.includes(location);
+  const isTelefonia = TELEFONIA_ROUTES.some((r) => location.startsWith(r));
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -52,7 +54,7 @@ export function Header({ dashboard }: HeaderProps) {
         {/* Quick filters visible on large screens */}
         {showFilters && (
           <div className="hidden xl:flex items-center gap-2 flex-wrap">
-            <FilterBar dashboard={dashboard} compact />
+            <FilterBar dashboard={dashboard} compact hideChanQueue={isTelefonia} />
           </div>
         )}
       </div>
@@ -75,7 +77,7 @@ export function Header({ dashboard }: HeaderProps) {
               <SheetTitle className="text-foreground">Filtros</SheetTitle>
             </SheetHeader>
             <div className="mt-4">
-              <FilterBar dashboard={dashboard} />
+              <FilterBar dashboard={dashboard} hideChanQueue={isTelefonia} />
             </div>
           </SheetContent>
         </Sheet>

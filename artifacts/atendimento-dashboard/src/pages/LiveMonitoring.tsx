@@ -9,6 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
 import {
   fetchActiveChats, fetchQueues, fetchAgents, resolveNames,
   type LiveAttendance,
@@ -43,6 +44,7 @@ function getChannelColor(channel: string): string {
 }
 
 export function LiveMonitoring() {
+  const { user } = useAuth();
   const [attendances, setAttendances] = useState<LiveAttendance[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -51,6 +53,13 @@ export function LiveMonitoring() {
   const [subTab, setSubTab] = useState<SubTab>("acompanhamento");
   const [selectedQueue, setSelectedQueue] = useState<string | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+
+  // Filter attendances based on user's queue restrictions
+  const filteredAttendances = useMemo(() => {
+    if (!user?.restrictChatQueues) return attendances;
+    if (!user.allowedChatQueues || user.allowedChatQueues.length === 0) return [];
+    return attendances.filter((a) => user.allowedChatQueues.includes(a.dst));
+  }, [attendances, user]);
 
   const [queueMap, setQueueMap] = useState<Map<string, string>>(new Map());
   const [agentMap, setAgentMap] = useState<Map<string, string>>(new Map());
@@ -133,8 +142,8 @@ export function LiveMonitoring() {
     return () => clearInterval(interval);
   }, []);
 
-  const inQueue = attendances.filter((a) => a.phase === "fila");
-  const withAgent = attendances.filter((a) => a.phase === "agente");
+  const inQueue = filteredAttendances.filter((a) => a.phase === "fila");
+  const withAgent = filteredAttendances.filter((a) => a.phase === "agente");
 
   const agentChartData = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -184,15 +193,15 @@ export function LiveMonitoring() {
   }, [withAgent, selectedAgent]);
 
   const filtered = useMemo(() => {
-    if (!search) return attendances;
+    if (!search) return filteredAttendances;
     const q = search.toLowerCase();
-    return attendances.filter((a) =>
+    return filteredAttendances.filter((a) =>
       a.contactName.toLowerCase().includes(q) ||
       a.contactPhone.includes(q) ||
       a.dstName.toLowerCase().includes(q) ||
       a.dst.includes(q)
     );
-  }, [attendances, search]);
+  }, [filteredAttendances, search]);
 
   return (
     <div className="space-y-6">
@@ -253,7 +262,7 @@ export function LiveMonitoring() {
               </div>
               <div>
                 <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Em Atendimento</p>
-                <p className="text-3xl font-extrabold number-display tabular-nums tracking-tight text-foreground">{attendances.length}</p>
+                <p className="text-3xl font-extrabold number-display tabular-nums tracking-tight text-foreground">{filteredAttendances.length}</p>
               </div>
             </div>
           </CardContent>
@@ -288,7 +297,7 @@ export function LiveMonitoring() {
               <div>
                 <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Canais Ativos</p>
                 <p className="text-3xl font-extrabold number-display tabular-nums tracking-tight text-cyan-600 dark:text-cyan-400">
-                  {new Set(attendances.map((a) => a.channel)).size}
+                  {new Set(filteredAttendances.map((a) => a.channel)).size}
                 </p>
               </div>
             </div>

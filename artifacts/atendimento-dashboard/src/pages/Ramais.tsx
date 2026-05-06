@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/context/AuthContext";
+import { fetchAgents } from "@/data/api/activeChats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -90,8 +92,37 @@ const CALL_STATE_MAP: Record<CallEntry["state"], { label: string; color: string 
 };
 
 export function Ramais() {
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [expandedRamais, setExpandedRamais] = useState<Set<string>>(new Set());
+
+  // Mappings for filtering by queue
+  const [agentQueuesMap, setAgentQueuesMap] = useState<Map<string, string[]>>(new Map());
+  const [agentNameQueuesMap, setAgentNameQueuesMap] = useState<Map<string, string[]>>(new Map());
+
+  // Load agent data to build mappings
+  useEffect(() => {
+    (async () => {
+      try {
+        const aList = await fetchAgents();
+        const aqm = new Map<string, string[]>();
+        const anqm = new Map<string, string[]>();
+        for (const agent of aList) {
+          if (agent.queues && agent.queues.length > 0) {
+            const qids = agent.queues.map((q) => q.queue);
+            aqm.set(agent.id, qids);
+            if (agent.name) {
+              anqm.set(agent.name.toLowerCase().trim(), qids);
+            }
+          }
+        }
+        setAgentQueuesMap(aqm);
+        setAgentNameQueuesMap(anqm);
+      } catch (err) {
+        console.warn("[Ramais] Erro ao carregar agentes:", err);
+      }
+    })();
+  }, []);
 
   const { data: ramais = [], isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ["ramais"],
@@ -108,22 +139,41 @@ export function Ramais() {
     });
   }
 
-  const filteredRamais = ramais
-    .filter(
-      (r) =>
-        r.exten.toLowerCase().includes(search.toLowerCase()) ||
-        r.name.toLowerCase().includes(search.toLowerCase())
-    )
-    .sort((a, b) => {
-      if (a.inuse && !b.inuse) return -1;
-      if (!a.inuse && b.inuse) return 1;
-      return parseInt(a.exten) - parseInt(b.exten);
-    });
+  const EXCLUDED_EXTENS = ["5599"];
 
-  const totalRamais = ramais.length;
-  const registrados = ramais.filter((r) => r.status === "Reachable" && !r.inuse).length;
-  const emUso = ramais.filter((r) => r.inuse).length;
-  const naoRegistrados = ramais.filter((r) => r.status === "Unreachable").length;
+  const filteredRamais = useMemo(() => {
+    // Filter out test extensions and apply queue restrictions
+    let queueFiltered = ramais.filter((r) => !EXCLUDED_EXTENS.includes(r.exten));
+    if (user?.restrictTelefoniaQueues && user.allowedTelefoniaQueues && user.allowedTelefoniaQueues.length > 0) {
+      queueFiltered = queueFiltered.filter((r) => {
+        const ramalName = r.name.toLowerCase().trim();
+        const agentQueueIds = agentQueuesMap.get(r.exten) || agentNameQueuesMap.get(ramalName);
+        
+        if (!agentQueueIds || agentQueueIds.length === 0) return false;
+        
+        return agentQueueIds.some((qid) => user.allowedTelefoniaQueues!.includes(qid));
+      });
+    } else if (user?.restrictTelefoniaQueues) {
+      queueFiltered = [];
+    }
+
+    return queueFiltered
+      .filter(
+        (r) =>
+          r.exten.toLowerCase().includes(search.toLowerCase()) ||
+          r.name.toLowerCase().includes(search.toLowerCase())
+      )
+      .sort((a, b) => {
+        if (a.inuse && !b.inuse) return -1;
+        if (!a.inuse && b.inuse) return 1;
+        return parseInt(a.exten) - parseInt(b.exten);
+      });
+  }, [ramais, search, user, agentQueuesMap, agentNameQueuesMap]);
+
+  const totalRamais = filteredRamais.length;
+  const registrados = filteredRamais.filter((r) => r.status === "Reachable" && !r.inuse).length;
+  const emUso = filteredRamais.filter((r) => r.inuse).length;
+  const naoRegistrados = filteredRamais.filter((r) => r.status === "Unreachable").length;
 
   return (
     <div className="space-y-6">

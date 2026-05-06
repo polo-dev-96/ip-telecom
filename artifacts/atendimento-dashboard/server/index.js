@@ -312,7 +312,13 @@ app.post("/api/auth/login", async (req, res) => {
           : user.permissions;
       } catch { permissions = ALL_TABS; }
     }
-    const payload = { id: user.id, name: user.name, email: user.email, role: user.role, permissions };
+    const queuePermissions = {
+      restrictChatQueues: Boolean(user.restrict_chat_queues),
+      allowedChatQueues: user.allowed_chat_queues ? (typeof user.allowed_chat_queues === "string" ? JSON.parse(user.allowed_chat_queues) : user.allowed_chat_queues) : [],
+      restrictTelefoniaQueues: Boolean(user.restrict_telefonia_queues),
+      allowedTelefoniaQueues: user.allowed_telefonia_queues ? (typeof user.allowed_telefonia_queues === "string" ? JSON.parse(user.allowed_telefonia_queues) : user.allowed_telefonia_queues) : [],
+    };
+    const payload = { id: user.id, name: user.name, email: user.email, role: user.role, permissions, ...queuePermissions };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES });
     res.json({ token, user: payload });
   } catch (err) {
@@ -323,7 +329,7 @@ app.post("/api/auth/login", async (req, res) => {
 app.get("/api/auth/me", authMiddleware, async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT id, name, email, role, permissions FROM ip_users WHERE id = ? AND active = 1 LIMIT 1",
+      "SELECT id, name, email, role, permissions, restrict_chat_queues, allowed_chat_queues, restrict_telefonia_queues, allowed_telefonia_queues FROM ip_users WHERE id = ? AND active = 1 LIMIT 1",
       [req.user.id]
     );
     if (rows.length === 0) return res.status(401).json({ error: "Usuário não encontrado" });
@@ -332,7 +338,13 @@ app.get("/api/auth/me", authMiddleware, async (req, res) => {
     if (u.permissions) {
       try { permissions = typeof u.permissions === "string" ? JSON.parse(u.permissions) : u.permissions; } catch { permissions = ALL_TABS; }
     }
-    res.json({ user: { id: u.id, name: u.name, email: u.email, role: u.role, permissions } });
+    const queuePermissions = {
+      restrictChatQueues: Boolean(u.restrict_chat_queues),
+      allowedChatQueues: u.allowed_chat_queues ? (typeof u.allowed_chat_queues === "string" ? JSON.parse(u.allowed_chat_queues) : u.allowed_chat_queues) : [],
+      restrictTelefoniaQueues: Boolean(u.restrict_telefonia_queues),
+      allowedTelefoniaQueues: u.allowed_telefonia_queues ? (typeof u.allowed_telefonia_queues === "string" ? JSON.parse(u.allowed_telefonia_queues) : u.allowed_telefonia_queues) : [],
+    };
+    res.json({ user: { id: u.id, name: u.name, email: u.email, role: u.role, permissions, ...queuePermissions } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -342,13 +354,17 @@ app.get("/api/auth/me", authMiddleware, async (req, res) => {
 app.get("/api/users", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT id, name, email, role, active, permissions, created_at FROM ip_users ORDER BY created_at DESC"
+      "SELECT id, name, email, role, active, permissions, created_at, restrict_chat_queues, allowed_chat_queues, restrict_telefonia_queues, allowed_telefonia_queues FROM ip_users ORDER BY created_at DESC"
     );
     const users = rows.map((u) => ({
       ...u,
       permissions: u.permissions
         ? (typeof u.permissions === "string" ? JSON.parse(u.permissions) : u.permissions)
         : ALL_TABS,
+      restrictChatQueues: Boolean(u.restrict_chat_queues),
+      allowedChatQueues: u.allowed_chat_queues ? (typeof u.allowed_chat_queues === "string" ? JSON.parse(u.allowed_chat_queues) : u.allowed_chat_queues) : [],
+      restrictTelefoniaQueues: Boolean(u.restrict_telefonia_queues),
+      allowedTelefoniaQueues: u.allowed_telefonia_queues ? (typeof u.allowed_telefonia_queues === "string" ? JSON.parse(u.allowed_telefonia_queues) : u.allowed_telefonia_queues) : [],
     }));
     res.json({ users });
   } catch (err) {
@@ -357,7 +373,7 @@ app.get("/api/users", authMiddleware, adminMiddleware, async (req, res) => {
 });
 
 app.post("/api/users", authMiddleware, adminMiddleware, async (req, res) => {
-  const { name, email, password, permissions } = req.body;
+  const { name, email, password, permissions, restrictChatQueues, allowedChatQueues, restrictTelefoniaQueues, allowedTelefoniaQueues } = req.body;
   if (!name || !email || !password) {
     return res.status(400).json({ error: "Nome, email e senha são obrigatórios" });
   }
@@ -368,11 +384,15 @@ app.post("/api/users", authMiddleware, adminMiddleware, async (req, res) => {
     }
     const hash = await bcrypt.hash(password, 10);
     const perms = Array.isArray(permissions) && permissions.length > 0 ? permissions : ALL_TABS;
+    const restrictChat = Boolean(restrictChatQueues);
+    const chatQueues = Array.isArray(allowedChatQueues) ? allowedChatQueues : [];
+    const restrictTel = Boolean(restrictTelefoniaQueues);
+    const telQueues = Array.isArray(allowedTelefoniaQueues) ? allowedTelefoniaQueues : [];
     const [result] = await pool.query(
-      "INSERT INTO ip_users (name, email, password_hash, role, active, permissions) VALUES (?, ?, ?, 'user', 1, ?)",
-      [name.trim(), email.trim().toLowerCase(), hash, JSON.stringify(perms)]
+      "INSERT INTO ip_users (name, email, password_hash, role, active, permissions, restrict_chat_queues, allowed_chat_queues, restrict_telefonia_queues, allowed_telefonia_queues) VALUES (?, ?, ?, 'user', 1, ?, ?, ?, ?, ?)",
+      [name.trim(), email.trim().toLowerCase(), hash, JSON.stringify(perms), restrictChat ? 1 : 0, JSON.stringify(chatQueues), restrictTel ? 1 : 0, JSON.stringify(telQueues)]
     );
-    res.status(201).json({ id: result.insertId, name, email, role: "user", permissions: perms });
+    res.status(201).json({ id: result.insertId, name, email, role: "user", permissions: perms, restrictChatQueues: restrictChat, allowedChatQueues: chatQueues, restrictTelefoniaQueues: restrictTel, allowedTelefoniaQueues: telQueues });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -380,16 +400,20 @@ app.post("/api/users", authMiddleware, adminMiddleware, async (req, res) => {
 
 app.put("/api/users/:id", authMiddleware, adminMiddleware, async (req, res) => {
   const { id } = req.params;
-  const { permissions } = req.body;
+  const { permissions, restrictChatQueues, allowedChatQueues, restrictTelefoniaQueues, allowedTelefoniaQueues } = req.body;
   if (!Array.isArray(permissions)) {
     return res.status(400).json({ error: "Permissões inválidas" });
   }
   try {
+    const restrictChat = Boolean(restrictChatQueues);
+    const chatQueues = Array.isArray(allowedChatQueues) ? allowedChatQueues : [];
+    const restrictTel = Boolean(restrictTelefoniaQueues);
+    const telQueues = Array.isArray(allowedTelefoniaQueues) ? allowedTelefoniaQueues : [];
     await pool.query(
-      "UPDATE ip_users SET permissions = ?, updated_at = NOW() WHERE id = ?",
-      [JSON.stringify(permissions), id]
+      "UPDATE ip_users SET permissions = ?, restrict_chat_queues = ?, allowed_chat_queues = ?, restrict_telefonia_queues = ?, allowed_telefonia_queues = ?, updated_at = NOW() WHERE id = ?",
+      [JSON.stringify(permissions), restrictChat ? 1 : 0, JSON.stringify(chatQueues), restrictTel ? 1 : 0, JSON.stringify(telQueues), id]
     );
-    res.json({ success: true, permissions });
+    res.json({ success: true, permissions, restrictChatQueues: restrictChat, allowedChatQueues: chatQueues, restrictTelefoniaQueues: restrictTel, allowedTelefoniaQueues: telQueues });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -464,6 +488,15 @@ app.get("/api/attendances", authMiddleware, async (req, res) => {
       params.push(...agentList);
     }
 
+    // Apply user's queue restrictions (server-side filtering)
+    if (req.user.restrictChatQueues && req.user.allowedChatQueues && req.user.allowedChatQueues.length > 0) {
+      sql += ` AND fila IN (${req.user.allowedChatQueues.map(() => "?").join(",")})`;
+      params.push(...req.user.allowedChatQueues);
+    } else if (req.user.restrictChatQueues) {
+      // User has restriction enabled but no allowed queues -> return empty
+      return res.json({ data: [], total: 0 });
+    }
+
     sql += " ORDER BY end_date DESC";
 
     const [rows] = await pool.query(sql, params);
@@ -493,20 +526,47 @@ app.get("/api/filters", authMiddleware, async (req, res) => {
       `SELECT DISTINCT agente FROM \`${MAIN_TABLE}\` WHERE agente IS NOT NULL AND agente != '' ORDER BY agente`
     );
 
+    // Filter queues based on user restrictions (chat queues)
+    let allowedQueues = queueRows.map((r) => ({
+      value: String(r.fila),
+      label: getQueueName(r.fila),
+    }));
+    if (req.user.restrictChatQueues && req.user.allowedChatQueues && req.user.allowedChatQueues.length > 0) {
+      allowedQueues = allowedQueues.filter((q) => req.user.allowedChatQueues.includes(q.value));
+    } else if (req.user.restrictChatQueues) {
+      allowedQueues = []; // No queues allowed
+    }
+
     res.json({
       channels: channelRows.map((r) => ({
         value: r.tipo_de_canal,
         label: normalizeChannel(r.tipo_de_canal),
       })),
-      queues: queueRows.map((r) => ({
-        value: String(r.fila),
-        label: getQueueName(r.fila),
-      })),
+      queues: allowedQueues,
       agents: agentRows.map((r) => ({
         value: String(r.agente),
         label: getAgentName(r.agente),
       })),
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── uTech queues (telefonia) ─────────────────────────────────────
+app.get("/api/telefonia-queues", authMiddleware, async (req, res) => {
+  try {
+    const queues = Object.entries(QUEUE_MAP).map(([id, name]) => ({
+      value: id,
+      label: `${name} (${id})`,
+    }));
+    let allowedQueues = queues;
+    if (req.user.restrictTelefoniaQueues && req.user.allowedTelefoniaQueues && req.user.allowedTelefoniaQueues.length > 0) {
+      allowedQueues = queues.filter((q) => req.user.allowedTelefoniaQueues.includes(q.value));
+    } else if (req.user.restrictTelefoniaQueues) {
+      allowedQueues = [];
+    }
+    res.json({ queues: allowedQueues });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

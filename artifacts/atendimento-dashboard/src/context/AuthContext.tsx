@@ -7,6 +7,10 @@ export interface AuthUser {
   email: string;
   role: "admin" | "user";
   permissions: string[];
+  restrictChatQueues: boolean;
+  allowedChatQueues: string[];
+  restrictTelefoniaQueues: boolean;
+  allowedTelefoniaQueues: string[];
 }
 
 interface AuthContextValue {
