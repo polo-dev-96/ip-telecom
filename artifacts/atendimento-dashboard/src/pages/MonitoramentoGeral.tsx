@@ -82,6 +82,38 @@ const CALL_STATE_MAP: Record<CallEntry["state"], { label: string; color: string 
 
 // ======================== HELPERS ========================
 
+function normalizeName(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function findQueuesByName(
+  name: string,
+  nameQueuesMap: Map<string, string[]>
+): string[] | undefined {
+  const normalized = normalizeName(name);
+  if (nameQueuesMap.has(normalized)) return nameQueuesMap.get(normalized);
+  const parts = normalized.split(" ");
+  if (parts.length < 2) return undefined;
+  const first = parts[0];
+  const last = parts[parts.length - 1];
+  for (const [agentName, qids] of nameQueuesMap) {
+    if (
+      agentName === normalized ||
+      agentName.startsWith(normalized) ||
+      normalized.startsWith(agentName) ||
+      (agentName.includes(first) && agentName.includes(last))
+    ) {
+      return qids;
+    }
+  }
+  return undefined;
+}
+
 function getChannelColor(channel: string): string {
   return CHANNEL_COLORS[channel] ?? "bg-gray-500/10 text-gray-700 dark:text-gray-400 border-gray-500/20";
 }
@@ -183,7 +215,7 @@ export function MonitoramentoGeral() {
             const qids = agent.queues.map((q) => q.queue);
             aqm.set(agent.id, qids);
             if (agent.name) {
-              anqm.set(agent.name.toLowerCase().trim(), qids);
+              anqm.set(normalizeName(agent.name), qids);
             }
           }
         }
@@ -248,28 +280,24 @@ export function MonitoramentoGeral() {
 
   // ===== DERIVED CHAT =====
   const filteredChatAttendances = useMemo(() => {
-    // Filter attendances based on user's queue restrictions
+    // Filter chat attendances based on user's CHAT queue restrictions only
     let base = attendances;
-    
-    // In the Unified Monitor, we merge Chat and Telefonia allowed queues to be more flexible,
-    // as some queues (like 8002) might be configured in one section but affect the other.
-    const isRestricted = user?.restrictChatQueues || user?.restrictTelefoniaQueues;
-    const allowed = [
-      ...(user?.allowedChatQueues || []),
-      ...(user?.allowedTelefoniaQueues || [])
-    ].map(id => String(id));
+
+    const isRestricted = user?.restrictChatQueues;
+    const allowed = (user?.allowedChatQueues || []).map((id) => String(id));
 
     if (isRestricted && allowed.length > 0) {
       base = attendances.filter((a) => {
         const dstId = String(a.dst);
-        const dstNameLower = a.dstName.toLowerCase().trim();
-        
+
         // 1. Direct match: Is the chat currently in a permitted queue?
         if (allowed.includes(dstId)) return true;
 
         // 2. Agent match: Is the chat with an agent who belongs to a permitted queue?
-        const agentQueueIds = agentQueuesMap.get(dstId) || agentNameQueuesMap.get(dstNameLower);
-        
+        const agentQueueIds =
+          agentQueuesMap.get(dstId) ||
+          findQueuesByName(a.dstName, agentNameQueuesMap);
+
         if (agentQueueIds && agentQueueIds.some((qid) => allowed.includes(String(qid)))) {
           return true;
         }
@@ -313,8 +341,9 @@ export function MonitoramentoGeral() {
     let queueFiltered = ramais.filter((r) => !EXCLUDED_EXTENS.includes(r.exten));
     if (user?.restrictTelefoniaQueues && user.allowedTelefoniaQueues && user.allowedTelefoniaQueues.length > 0) {
       queueFiltered = queueFiltered.filter((r) => {
-        const ramalName = r.name.toLowerCase().trim();
-        const agentQueueIds = agentQueuesMap.get(r.exten) || agentNameQueuesMap.get(ramalName);
+        const agentQueueIds =
+          agentQueuesMap.get(r.exten) ||
+          findQueuesByName(r.name, agentNameQueuesMap);
         if (!agentQueueIds || agentQueueIds.length === 0) return false;
         return agentQueueIds.some((qid) => user.allowedTelefoniaQueues!.includes(qid));
       });

@@ -199,9 +199,40 @@ function adminMiddleware(req, res, next) {
   next();
 }
 
+async function cleanupMixedQueues() {
+  try {
+    const [rows] = await pool.query(
+      "SELECT id, allowed_chat_queues, allowed_telefonia_queues FROM ip_users WHERE allowed_chat_queues IS NOT NULL OR allowed_telefonia_queues IS NOT NULL"
+    );
+    let fixed = 0;
+    for (const row of rows) {
+      let chatQueues = [];
+      let telQueues = [];
+      try { chatQueues = row.allowed_chat_queues ? JSON.parse(row.allowed_chat_queues) : []; } catch {}
+      try { telQueues = row.allowed_telefonia_queues ? JSON.parse(row.allowed_telefonia_queues) : []; } catch {}
+      // Chat queues should only be 8xxx; telefonia queues should only be 7xxx
+      const cleanChat = chatQueues.filter((id) => String(id).startsWith("8"));
+      const cleanTel = telQueues.filter((id) => String(id).startsWith("7"));
+      if (cleanChat.length !== chatQueues.length || cleanTel.length !== telQueues.length) {
+        await pool.query(
+          "UPDATE ip_users SET allowed_chat_queues = ?, allowed_telefonia_queues = ? WHERE id = ?",
+          [JSON.stringify(cleanChat), JSON.stringify(cleanTel), row.id]
+        );
+        fixed++;
+        console.log(`🔧 Fixed mixed queues for user id=${row.id}: chat ${JSON.stringify(chatQueues)}→${JSON.stringify(cleanChat)}, tel ${JSON.stringify(telQueues)}→${JSON.stringify(cleanTel)}`);
+      }
+    }
+    if (fixed === 0) console.log("✅ No mixed queue data found — all clean");
+    else console.log(`✅ Fixed mixed queues for ${fixed} user(s)`);
+  } catch (err) {
+    console.error("❌ Failed to cleanup mixed queues:", err.message);
+  }
+}
+
 async function initialize() {
   await Promise.all([discoverTable(), loadAgentNames(), loadQueueNames()]);
   await seedAdmin();
+  await cleanupMixedQueues();
 }
 
 // ─── Channel name mapping ──────────────────────────────────────
@@ -526,11 +557,13 @@ app.get("/api/filters", authMiddleware, async (req, res) => {
       `SELECT DISTINCT agente FROM \`${MAIN_TABLE}\` WHERE agente IS NOT NULL AND agente != '' ORDER BY agente`
     );
 
-    // Filter queues based on user restrictions (chat queues)
-    let allowedQueues = queueRows.map((r) => ({
-      value: String(r.fila),
-      label: getQueueName(r.fila),
-    }));
+    // Filter queues based on user restrictions (chat queues only: IDs starting with "8")
+    let allowedQueues = queueRows
+      .filter((r) => String(r.fila).startsWith("8"))
+      .map((r) => ({
+        value: String(r.fila),
+        label: getQueueName(r.fila),
+      }));
     if (req.user.restrictChatQueues && req.user.allowedChatQueues && req.user.allowedChatQueues.length > 0) {
       allowedQueues = allowedQueues.filter((q) => req.user.allowedChatQueues.includes(q.value));
     } else if (req.user.restrictChatQueues) {
@@ -556,10 +589,13 @@ app.get("/api/filters", authMiddleware, async (req, res) => {
 // ─── uTech queues (telefonia) ─────────────────────────────────────
 app.get("/api/telefonia-queues", authMiddleware, async (req, res) => {
   try {
-    const queues = Object.entries(QUEUE_MAP).map(([id, name]) => ({
-      value: id,
-      label: `${name} (${id})`,
-    }));
+    // Only telefonia queues: IDs starting with "7"
+    const queues = Object.entries(QUEUE_MAP)
+      .filter(([id]) => id.startsWith("7"))
+      .map(([id, name]) => ({
+        value: id,
+        label: `${name} (${id})`,
+      }));
     let allowedQueues = queues;
     if (req.user.restrictTelefoniaQueues && req.user.allowedTelefoniaQueues && req.user.allowedTelefoniaQueues.length > 0) {
       allowedQueues = queues.filter((q) => req.user.allowedTelefoniaQueues.includes(q.value));
